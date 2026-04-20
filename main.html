@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Obsidian</title>
+    <link rel="icon" type="image/png" href="obsidian.png">
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <script src="theme-init.js"></script>
+    <script src="auth-guard.js"></script>
+
+    <!-- Announcement Overlay -->
+    <div id="announcement-overlay" class="announcement-overlay">
+        <div id="announcement-modal" class="announcement-modal">
+            <div class="announcement-icon-wrap" id="announcement-icon-wrap">
+                <svg id="announcement-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <h2 id="announcement-title" class="announcement-title"></h2>
+            <p id="announcement-message" class="announcement-message"></p>
+            <button id="announcement-close" class="announcement-close" onclick="closeAnnouncement()">Got it</button>
+        </div>
+    </div>
+
+    <!-- Welcome Screen -->
+    <div id="welcome-screen" class="welcome-screen" style="display:none">
+        <div class="welcome-content">
+            <div class="welcome-logo">
+                <img src="obsidian.png" alt="Obsidian Logo" class="welcome-logo-img">
+            </div>
+            <h1 class="welcome-title">Welcome to Obsidian</h1>
+            <p class="welcome-subtitle">welcome to obsidian</p>
+            <div class="welcome-loading">
+                <div class="loading-dots">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+    // Handle welcome screen entirely here %4 don't rely on window.load
+    // (which gets blocked by slow external scripts like jotform).
+    (function() {
+        var showWelcome = sessionStorage.getItem('obsidian_show_welcome');
+        // Clear the flag immediately so it never persists across navigations
+        sessionStorage.removeItem('obsidian_show_welcome');
+
+        var ws = document.getElementById('welcome-screen');
+        if (!ws) return;
+
+        // Check if welcome screen feature is enabled (read localStorage directly
+        // since theme.js hasn't loaded yet)
+        var welcomeEnabled = true;
+        try {
+            var settings = JSON.parse(localStorage.getItem('obsidian_settings'));
+            if (settings && settings.features && settings.features.welcomeScreen === false) {
+                welcomeEnabled = false;
+            }
+        } catch(e) {}
+
+        if (showWelcome === 'true' && welcomeEnabled) {
+            // Show welcome screen and auto-dismiss after 2.5s
+            ws.style.display = '';
+            setTimeout(function() {
+                ws.classList.add('fade-out');
+                setTimeout(function() { ws.remove(); }, 600);
+            }, 2500);
+        }
+        // If not shown, it stays display:none and gets cleaned up later
+    })();
+    </script>
+
+    <div class="page-wrapper">
+        <header class="header animate-fade-in">
+            <div class="browser-bar">
+                <div class="left-section">
+                    <img src="obsidian.png" alt="Obsidian Logo" class="logo">
+                    <a href="#" class="app-name" onclick="event.preventDefault(); sessionStorage.setItem('obsidian_show_welcome','true'); window.location.href='main.html';"><h1>Obsidian</h1></a>
+                </div>
+                <nav class="tab-navigation">
+                    <button class="tab-btn active" data-tab="games">Games</button>
+                    <button class="tab-btn" data-tab="media" onclick="window.location.href='media.html'">Media</button>
+                    <button class="tab-btn" data-tab="chat" onclick="window.location.href='chat.html'">Chat</button>
+                    <button class="tab-btn" data-tab="ai" onclick="window.location.href='ai.html'">AI</button>
+                    <button class="tab-btn" data-tab="proxy" onclick="window.location.href='proxy.html'">Proxy</button>
+                    <button class="tab-btn" data-tab="settings">Settings</button>
+                    <button class="tab-btn" data-tab="credits" onclick="window.location.href='credits.html'">Credits</button>
+                </nav>
+            </div>
+            <div class="subtitle-section">
+                <p class="subtitle" style="font-size:0.8rem; letter-spacing:0.02em; opacity:0.7;">you're welcome</p>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div id="games-tab" class="tab-content active">
+                <div class="search-section">
+                    <div class="search-container">
+                        <div class="search-input-wrapper">
+                            <input id="search" type="text" placeholder="Search games... (press / to focus)" autocomplete="off">
+                        </div>
+                        <div class="search-filters">
+                            <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                                All Games
+                            </button>
+                            <button class="filter-btn" data-filter="favorites" onclick="setFilter('favorites')">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                                Favorites
+                            </button>
+                            <button class="filter-btn" data-filter="rated" onclick="setFilter('rated')">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                Rated
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Bar -->
+                <div id="stats-bar" class="stats-bar"></div>
+
+                <!-- Favorites Quick Strip -->
+                <div id="favorites-strip" class="favorites-strip" style="display:none;">
+                    <div class="favorites-strip-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#ef4444" stroke="#ef4444" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                        Quick Favorites
+                    </div>
+                    <div id="favorites-strip-games" class="favorites-strip-games"></div>
+                </div>
+
+                <!-- Recently Played -->
+                <div id="recent-section" class="recent-section" style="display:none;">
+                    <div class="recent-header">
+                        <h3 class="recent-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            Recently Played
+                        </h3>
+                        <button class="btn btn-secondary btn-sm clear-recent-btn" id="clear-recent-btn" onclick="clearRecentGames()">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                            Clear
+                        </button>
+                    </div>
+                    <div id="recent-games" class="recent-games"></div>
+                </div>
+
+                <!-- Games Toolbar -->
+                <div class="games-toolbar">
+                    <div class="game-count">
+                        <span id="game-counter">Loading games...</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <!-- Quick Actions moved here -->
+                        <div class="quick-actions" style="margin:0;padding:0;">
+                            <button class="quick-action-btn" onclick="openRandomGame()">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 4l3 3-3 3"/><path d="M18 20l3-3-3-3"/><path d="M3 7h3a5 5 0 0 1 5 5 5 5 0 0 0 5 5h5"/><path d="M21 7h-5a5 5 0 0 0-5 5 5 5 0 0 1-5 5H3"/></svg>
+                                Random
+                            </button>
+                            <button class="quick-action-btn" onclick="showKeyboardShortcuts()">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10"/></svg>
+                                Shortcuts
+                            </button>
+                        </div>
+                        <select id="sort-select" class="sort-select" onchange="applySortAndFilter()">
+                            <option value="default">Default Order</option>
+                            <option value="az">A &rarr; Z</option>
+                            <option value="za">Z &rarr; A</option>
+                            <option value="rating">By Rating</option>
+                            <option value="mostPlayed">Most Played</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="centered-games-wrapper">
+                    <div id="cont" class="games-container">
+                        <div class="game-grid">
+                        <button class="game-button" onclick="openGame('1/index.html', '1')">1</button>
+                        <button class="game-button" onclick="openGame('1v1lol/index.html', '1v1.lol')">1v1.lol</button>
+                        <button class="game-button" onclick="openGame('1v1space/index.html', '1v1 Space')">1v1 Space</button>
+                        <button class="game-button" onclick="openGame('10-minutes-till-dawn/index.html', '10 Minutes Till Dawn')">10 Minutes Till Dawn</button>
+                        <button class="game-button" onclick="openGame('100ng/index.html', '100ng')">100ng</button>
+                        <button class="game-button" onclick="openGame('2020-game/index.html', '2020 Game')">2020 Game</button>
+                        <button class="game-button" onclick="openGame('2048/index.html', '2048')">2048</button>
+                        <button class="game-button" onclick="openGame('2048-multitask/index.html', '2048 Multitask')">2048 Multitask</button>
+                        <button class="game-button" onclick="openGame('8ball-billards-classic/index.html', '8 Ball Billiards Classic')">8 Ball Billiards Classic</button>
+                        <button class="game-button" onclick="openGame('achievementunlocked/index.html', 'Achievement Unlocked')">Achievement Unlocked</button>
+                        <button class="game-button" onclick="openGame('adarkroom/index.html', 'A Dark Room')">A Dark Room</button>
+                        <button class="game-button" onclick="openGame('adrenalinechallenge/index.html', 'Adrenaline Challenge')">Adrenaline Challenge</button>
+                        <button class="game-button" onclick="openGame('age-of-war/index.html', 'Age of War')">Age of War</button>
+                        <button class="game-button" onclick="openGame('alienhominid/index.html', 'Alien Hominid')">Alien Hominid</button>
+                        <button class="game-button" onclick="openGame('angry-birds/index.html', 'Angry Birds')">Angry Birds</button>
+                        <button class="game-button" onclick="openGame('asteroids/index.html', 'Asteroids')">Asteroids</button>
+                        <button class="game-button" onclick="openGame('astray/index.html', 'Astray')">Astray</button>
+                        <button class="game-button" onclick="openGame('awesome-tanks-2/index.html', 'Awesome Tanks 2')">Awesome Tanks 2</button>
+                        <button class="game-button" onclick="openGame('bad-ice-cream/index.html', 'Bad Ice Cream')">Bad Ice Cream</button>
+                        <button class="game-button" onclick="openGame('blackholesquare/index.html', 'Black Hole Square')">Black Hole Square</button>
+                        <button class="game-button" onclick="openGame('bloonstd/index.html', 'Bloons TD')">Bloons TD</button>
+                        <button class="game-button" onclick="openGame('bloonstd2/index.html', 'Bloons TD 2')">Bloons TD 2</button>
+                        <button class="game-button" onclick="openGame('bloxors/index.html', 'Bloxorz')">Bloxorz</button>
+                        <button class="game-button" onclick="openGame('boxel-rebound/index.html', 'Boxel Rebound')">Boxel Rebound</button>
+                        <button class="game-button" onclick="openGame('boxhead2play/index.html', 'Boxhead 2Play')">Boxhead 2Play</button>
+                        <button class="game-button" onclick="openGame('breakout/index.html', 'Breakout')">Breakout</button>
+                        <button class="game-button" onclick="openGame('btd4/index.html', 'Bloons TD 4')">Bloons TD 4</button>
+                        <button class="game-button" onclick="openGame('chess/index.html', 'Chess')">Chess</button>
+                        <button class="game-button" onclick="openGame('chromedino/index.html', 'Chrome Dino')">Chrome Dino</button>
+                        <button class="game-button" onclick="openGame('circlo/index.html', 'Circlo')">Circlo</button>
+                        <button class="game-button" onclick="openGame('cluster-rush/index.html', 'Cluster Rush')">Cluster Rush</button>
+                        <button class="game-button" onclick="openGame('cookie-clicker/index.html', 'Cookie Clicker')">Cookie Clicker</button>
+                        <button class="game-button" onclick="openGame('cuttherope/index.html', 'Cut the Rope')">Cut the Rope</button>
+                        <button class="game-button" onclick="openGame('dadish/index.html', 'Dadish')">Dadish</button>
+                        <button class="game-button" onclick="openGame('dadishtwo/index.html', 'Dadish 2')">Dadish 2</button>
+                        <button class="game-button" onclick="openGame('death-run-3d/index.html', 'Death Run 3D')">Death Run 3D</button>
+                        <button class="game-button" onclick="openGame('doodle-jump/index.html', 'Doodle Jump')">Doodle Jump</button>
+                        <button class="game-button" onclick="openGame('ducklife/index.html', 'Duck Life')">Duck Life</button>
+                        <button class="game-button" onclick="openGame('e@glercr@ft/index.html', 'Minecraft (Multiplayer)')">Minecraft (Multiplayer)</button>
+                        <button class="game-button" onclick="openGame('escapingtheprison/index.html', 'Escaping the Prison')">Escaping the Prison</button>
+                        <button class="game-button" onclick="openGame('evilglitch/index.html', 'Evil Glitch')">Evil Glitch</button>
+                        <button class="game-button" onclick="openGame('fireboywatergirlforesttemple/index.html', 'Fireboy and Watergirl')">Fireboy and Watergirl</button>
+                        <button class="game-button" onclick="openGame('flappy-bird/index.html', 'Flappy Bird')">Flappy Bird</button>
+                        <button class="game-button" onclick="openGame('geodash/index.html', 'Geo Dash')">Geo Dash</button>
+                        <button class="game-button" onclick="openGame('geometrydash/index.html', 'Geometry Dash')">Geometry Dash</button>
+                        <button class="game-button" onclick="openGame('google-snake/index.html', 'Google Snake')">Google Snake</button>
+                        <button class="game-button" onclick="openGame('hextris/index.html', 'Hextris')">Hextris</button>
+                        <button class="game-button" onclick="openGame('idle-breakout/index.html', 'Idle Breakout')">Idle Breakout</button>
+                        <button class="game-button" onclick="openGame('impossiblequiz/index.html', 'Impossible Quiz')">Impossible Quiz</button>
+                        <button class="game-button" onclick="openGame('learntofly/index.html', 'Learn to Fly')">Learn to Fly</button>
+                        <button class="game-button" onclick="openGame('madalin-stunt-cars-2/index.html', 'Madalin Stunt Cars 2')">Madalin Stunt Cars 2</button>
+                        <button class="game-button" onclick="openGame('minecraft/index.html', 'Minecraft')">Minecraft</button>
+                        <button class="game-button" onclick="openGame('minecraft-classic/index.html', 'Minecraft Classic')">Minecraft Classic</button>
+                        <button class="game-button" onclick="openGame('minesweeper/index.html', 'Minesweeper')">Minesweeper</button>
+                        <button class="game-button" onclick="openGame('motox3m/index.html', 'Moto X3M')">Moto X3M</button>
+                        <button class="game-button" onclick="openGame('motox3m2/index.html', 'Moto X3M 2')">Moto X3M 2</button>
+                        <button class="game-button" onclick="openGame('motox3m-pool/index.html', 'Moto X3M Pool Party')">Moto X3M Pool Party</button>
+                        <button class="game-button" onclick="openGame('motox3m-spooky/index.html', 'Moto X3M Spooky')">Moto X3M Spooky</button>
+                        <button class="game-button" onclick="openGame('motox3mwinter/index.html', 'Moto X3M Winter')">Moto X3M Winter</button>
+                        <button class="game-button" onclick="openGame('one-screen-run/index.html', 'One Screen Run')">One Screen Run</button>
+                        <button class="game-button" onclick="openGame('pacman/index.html', 'Pacman')">Pacman</button>
+                        <button class="game-button" onclick="openGame('papasburgeria/index.html', 'Papa&#39;s Burgeria')">Papa's Burgeria</button>
+                        <button class="game-button" onclick="openGame('papaspizzaria/index.html', 'Papa&#39;s Pizzeria')">Papa's Pizzeria</button>
+                        <button class="game-button" onclick="openGame('particleclicker/index.html', 'Particle Clicker')">Particle Clicker</button>
+                        <button class="game-button" onclick="openGame('retrobowl/index.html', 'Retro Bowl')">Retro Bowl</button>
+                        <button class="game-button" onclick="openGame('run-3/index.html', 'Run 3')">Run 3</button>
+                        <button class="game-button" onclick="openGame('sandboxels/index.html', 'Sandboxels')">Sandboxels</button>
+                        <button class="game-button" onclick="openGame('shift-flash/index.html', 'Shift Flash')">Shift Flash</button>
+                        <button class="game-button" onclick="openGame('slope/index.html', 'Slope')">Slope</button>
+                        <button class="game-button" onclick="openGame('sonic-the-hedgehog/src/index.html', 'Sonic the Hedgehog')">Sonic the Hedgehog</button>
+                        <button class="game-button" onclick="openGame('spacecompany/index.html', 'Space Company')">Space Company</button>
+                        <button class="game-button" onclick="openGame('spacehuggers/index.html', 'Space Huggers')">Space Huggers</button>
+                        <button class="game-button" onclick="openGame('superhot/index.html', 'Superhot')">Superhot</button>
+                        <button class="game-button" onclick="openGame('tetris/index.html', 'Tetris')">Tetris</button>
+                        <button class="game-button" onclick="openGame('the-final-earth-2/index.html', 'The Final Earth 2')">The Final Earth 2</button>
+                        <button class="game-button" onclick="openGame('the-impossible-quiz/index.html', 'The Impossible Quiz')">The Impossible Quiz</button>
+                        <button class="game-button" onclick="openGame('vex3/index.html', 'Vex 3')">Vex 3</button>
+                        <button class="game-button" onclick="openGame('vex4/index.html', 'Vex 4')">Vex 4</button>
+                        <button class="game-button" onclick="openGame('vex5/index.html', 'Vex 5')">Vex 5</button>
+                        <button class="game-button" onclick="openGame('worlds-hardest-game/index.html', 'World&#39;s Hardest Game')">World's Hardest Game</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MEDIA TAB -->
+            <div id="media-tab" class="tab-content" style="display:none;">
+                <div class="media-tab-content" style="padding: 0 1rem;">
+                    <h2 style="font-size:1.3rem; font-weight:700; color:var(--text-primary); margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+                        Media Library
+                    </h2>
+
+                    <!-- Upload Area -->
+                    <div id="media-upload-area" class="media-upload-area" onclick="document.getElementById('media-file-input').click()">
+                        <div class="media-upload-icon">&#128194;</div>
+                        <div class="media-upload-text">Click or drag files to upload</div>
+                        <div class="media-upload-hint">Supports images (jpg, png, gif, webp) and videos (mp4, webm, ogg)</div>
+                        <input type="file" id="media-file-input" accept="image/*,video/*" multiple style="display:none;" onchange="handleMediaUpload(event)">
+                    </div>
+
+                    <!-- Toolbar -->
+                    <div class="media-toolbar">
+                        <div class="media-toolbar-left">
+                            <span id="media-count" class="media-count">0 items</span>
+                            <button class="media-filter-btn active" data-mfilter="all" onclick="filterMedia('all', this)">All</button>
+                            <button class="media-filter-btn" data-mfilter="image" onclick="filterMedia('image', this)">Images</button>
+                            <button class="media-filter-btn" data-mfilter="video" onclick="filterMedia('video', this)">Videos</button>
+                        </div>
+                        <button class="btn btn-danger btn-sm" onclick="clearAllMedia()" style="font-size:0.75rem;">Clear All</button>
+                    </div>
+
+                    <!-- Media Grid -->
+                    <div id="media-grid" class="media-grid"></div>
+
+                    <!-- Empty State -->
+                    <div id="media-empty" class="media-empty">
+                        <div class="media-empty-icon">&#127910;</div>
+                        <div class="media-empty-text">No media yet</div>
+                        <div class="media-empty-hint">Upload images or videos to build your library</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Media Player Overlay -->
+        <div id="media-player-overlay" class="media-player-overlay">
+            <div id="media-player-container" class="media-player-container">
+                <div class="media-player-header">
+                    <span id="media-player-title" class="media-player-title">Media</span>
+                    <div class="media-player-header-btns">
+                        <button class="media-player-header-btn" id="media-maximize-btn" title="Toggle Fullscreen" onclick="toggleMediaFullscreen()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                        </button>
+                        <button class="media-player-header-btn" id="media-close-btn" title="Close" onclick="closeMediaPlayer()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div id="media-player-content" class="media-player-content"></div>
+                <!-- Video Controls (shown only for videos) -->
+                <div id="media-controls-bar" class="media-controls-bar" style="display:none;">
+                    <button class="media-ctrl-btn" onclick="mediaSkip(-10)" title="Back 10s">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                    </button>
+                    <button class="media-ctrl-btn play-btn" id="media-play-btn" onclick="toggleMediaPlay()" title="Play/Pause">
+                        <svg id="media-play-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    </button>
+                    <button class="media-ctrl-btn" onclick="mediaSkip(10)" title="Forward 10s">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"/></svg>
+                    </button>
+                    <div class="media-progress-wrapper">
+                        <span id="media-current-time" class="media-time">0:00</span>
+                        <div id="media-progress-bar" class="media-progress-bar" onclick="seekMedia(event)">
+                            <div id="media-progress-fill" class="media-progress-fill" style="width:0%;"></div>
+                        </div>
+                        <span id="media-duration" class="media-time">0:00</span>
+                    </div>
+                    <div class="media-volume-wrapper">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                        <input type="range" class="media-volume-slider" id="media-volume" min="0" max="1" step="0.05" value="1" oninput="setMediaVolume(this.value)">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Modal -->
+        <div id="game-modal" class="game-modal">
+            <div class="game-modal-content">
+                <div class="game-modal-header">
+                    <div class="game-modal-left">
+                        <h3 id="game-title" class="game-modal-title">Game Title</h3>
+                        <div id="game-rating" class="game-rating">
+                            <button class="star-btn" data-star="1" title="1 star">&#9733;</button>
+                            <button class="star-btn" data-star="2" title="2 stars">&#9733;</button>
+                            <button class="star-btn" data-star="3" title="3 stars">&#9733;</button>
+                            <button class="star-btn" data-star="4" title="4 stars">&#9733;</button>
+                            <button class="star-btn" data-star="5" title="5 stars">&#9733;</button>
+                            <span id="rating-text" class="rating-text"></span>
+                        </div>
+                    </div>
+                    <div class="game-modal-controls">
+                        <button id="game-fav-btn" class="game-control-btn game-fav-btn" title="Add to Favorites" onclick="toggleFavorite(currentGameName); updateGameModalFav();">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                            </svg>
+                        </button>
+                        <button id="game-reload-btn" class="game-control-btn" title="Reload Game">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 4v6h6"></path>
+                                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                            </svg>
+                        </button>
+                        <button id="game-fullscreen-btn" class="game-control-btn" title="Fullscreen Game">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                            </svg>
+                        </button>
+                        <button id="close-game-btn" class="game-control-btn" title="Close Game">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="game-iframe-container">
+                    <iframe id="game-iframe" src="" frameborder="0" allowfullscreen></iframe>
+                </div>
+            </div>
+        </div>
+
+        <footer class="watermark">
+            <p>made by anonymous</p>
+        </footer>
+    </div>
+
+    <script src="theme.js"></script>
+    <script>
+        // Welcome screen is now fully handled by the inline script above.
+        window.addEventListener('load', () => {
+            const ws = document.getElementById('welcome-screen');
+            if (ws && ws.style.display === 'none') ws.remove();
+            initAnnouncementSystem();
+            initStatsBar();
+            initFavoritesStrip();
+            initKeyboardShortcutsModal();
+            applyHiddenGames();
+            applySiteTitle();
+            applyAdminRestrictions();
+
+            // Anti-close: attach/detach beforeunload based on setting
+            function _antiCloseHandler(e) {
+                e.preventDefault();
+                e.returnValue = '';
+                return '';
+            }
+            function applyAntiClose() {
+                const enabled = (Obsidian.Settings.getAll().features || {}).antiClose;
+                if (enabled) {
+                    window.addEventListener('beforeunload', _antiCloseHandler);
+                } else {
+                    window.removeEventListener('beforeunload', _antiCloseHandler);
+                }
+            }
+            applyAntiClose();
+            // Re-apply whenever settings change (e.g. user toggles it in settings tab)
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'obsidian_settings') applyAntiClose();
+            });
+
+            // Handle tab navigation from other pages
+            const openTab = sessionStorage.getItem('obsidian_open_tab');
+            const a = Obsidian.getAdminSettings();
+            const canOpenMedia = !(a.disableMediaTab && !sessionStorage.getItem('obsidian_admin'));
+            if (openTab === 'media' && canOpenMedia) {
+                sessionStorage.removeItem('obsidian_open_tab');
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelector('.tab-btn[data-tab="media"]').classList.add('active');
+                document.getElementById('games-tab').style.display = 'none';
+                document.getElementById('media-tab').style.display = '';
+                renderMediaLibrary();
+            } else if (openTab) {
+                sessionStorage.removeItem('obsidian_open_tab');
+            }
+        });
+
+        // Tab navigation
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.getAttribute('data-tab');
+                const a = Obsidian.getAdminSettings();
+                const isAdmin = !!sessionStorage.getItem('obsidian_admin');
+
+                if (tab === 'settings') {
+                    if (a.disableSettingsPage && !isAdmin) {
+                        Obsidian.showToast('Settings are disabled by admin', 'error');
+                        return;
+                    }
+                    window.location.href = 'settings.html';
+                    return;
+                }
+
+                if (tab === 'media' && a.disableMediaTab && !isAdmin) {
+                    Obsidian.showToast('Media tab is disabled by admin', 'error');
+                    return;
+                }
+
+                // Switch between games and media tabs
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById('games-tab').style.display = (tab === 'games') ? '' : 'none';
+                document.getElementById('media-tab').style.display = (tab === 'media') ? '' : 'none';
+                if (tab === 'media') renderMediaLibrary();
+            });
+        });
+
+        // Search
+        const searchInput = document.getElementById('search');
+        const gameCounter = document.getElementById('game-counter');
+        const gameButtons = document.getElementsByClassName('game-button');
+
+        if (gameCounter) {
+            gameCounter.textContent = gameButtons.length + ' games available';
+        }
+
+        let searchTimeout;
+        if (searchInput) {
+            searchInput.addEventListener('input', () => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    applyFilter();
+                }, 120);
+            });
+
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    searchInput.value = '';
+                    searchInput.dispatchEvent(new Event('input'));
+                    searchInput.blur();
+                }
+            });
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === '/' && document.activeElement !== searchInput && searchInput) {
+                e.preventDefault();
+                searchInput.focus();
+            }
+        });
+
+        // Game modal
+        const gameModal = document.getElementById('game-modal');
+        const gameIframe = document.getElementById('game-iframe');
+        const gameTitle = document.getElementById('game-title');
+        const closeGameBtn = document.getElementById('close-game-btn');
+        const gameFullscreenBtn = document.getElementById('game-fullscreen-btn');
+        const gameReloadBtn = document.getElementById('game-reload-btn');
+        const ratingText = document.getElementById('rating-text');
+        const starBtns = document.querySelectorAll('.star-btn');
+        let currentGameName = '';
+        let currentGameUrl = '';
+
+        // Rating system - persisted to localStorage
+        function getGameRatings() {
+            try { return JSON.parse(localStorage.getItem('obsidian_game_ratings') || '{}'); } catch(e) { return {}; }
+        }
+
+        function saveGameRating(name, rating) {
+            const ratings = getGameRatings();
+            ratings[name] = rating;
+            localStorage.setItem('obsidian_game_ratings', JSON.stringify(ratings));
+        }
+
+        function updateStarDisplay(rating) {
+            starBtns.forEach(btn => {
+                const star = parseInt(btn.getAttribute('data-star'));
+                btn.classList.toggle('active', star <= rating);
+            });
+            if (rating > 0) {
+                ratingText.textContent = rating + '/5';
+            } else {
+                ratingText.textContent = '';
+            }
+        }
+
+        starBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const star = parseInt(btn.getAttribute('data-star'));
+                saveGameRating(currentGameName, star);
+                updateStarDisplay(star);
+            });
+            btn.addEventListener('mouseenter', () => {
+                const star = parseInt(btn.getAttribute('data-star'));
+                starBtns.forEach(b => {
+                    b.classList.toggle('hover', parseInt(b.getAttribute('data-star')) <= star);
+                });
+            });
+            btn.addEventListener('mouseleave', () => {
+                starBtns.forEach(b => b.classList.remove('hover'));
+            });
+        });
+
+        // ---- Favorites system ----
+        function getFavorites() {
+            try { return JSON.parse(localStorage.getItem('obsidian_favorites') || '[]'); } catch(e) { return []; }
+        }
+
+        function toggleFavorite(name) {
+            let favs = getFavorites();
+            if (favs.includes(name)) {
+                favs = favs.filter(f => f !== name);
+            } else {
+                favs.push(name);
+            }
+            localStorage.setItem('obsidian_favorites', JSON.stringify(favs));
+            updateFavoriteButtons();
+            updateGameModalFav();
+        }
+
+        function updateFavoriteButtons() {
+            const favs = getFavorites();
+            document.querySelectorAll('.game-button').forEach(btn => {
+                const name = btn.textContent.replace(/^\u2764\uFE0F?\s*/, '').trim();
+                let heart = btn.querySelector('.fav-heart');
+                if (!heart) {
+                    heart = document.createElement('span');
+                    heart.className = 'fav-heart';
+                    heart.title = 'Toggle favorite';
+                    heart.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        toggleFavorite(name);
+                    });
+                    btn.appendChild(heart);
+                }
+                heart.classList.toggle('active', favs.includes(name));
+            });
+        }
+
+        // ---- Recently Played ----
+        function getRecentGames() {
+            try { return JSON.parse(localStorage.getItem('obsidian_recent_games') || '[]'); } catch(e) { return []; }
+        }
+
+        function addRecentGame(url, name) {
+            let recent = getRecentGames();
+            // Remove duplicate
+            recent = recent.filter(g => g.name !== name);
+            // Add to front
+            recent.unshift({ url, name, time: Date.now() });
+            // Keep max 8
+            if (recent.length > 8) recent = recent.slice(0, 8);
+            localStorage.setItem('obsidian_recent_games', JSON.stringify(recent));
+        }
+
+        function renderRecentGames() {
+            const section = document.getElementById('recent-section');
+            const container = document.getElementById('recent-games');
+            const recent = getRecentGames();
+            if (recent.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+            section.style.display = '';
+            container.innerHTML = '';
+            recent.forEach(g => {
+                const btn = document.createElement('button');
+                btn.className = 'recent-game-btn';
+                btn.textContent = g.name;
+                btn.onclick = () => openGame(g.url, g.name);
+                container.appendChild(btn);
+            });
+        }
+
+        function clearRecentGames() {
+            localStorage.removeItem('obsidian_recent_games');
+            renderRecentGames();
+            if (window.Obsidian && Obsidian.showToast) {
+                Obsidian.showToast('Recently played cleared', 'success');
+            }
+        }
+
+        // ---- Filter system ----
+        let currentFilter = 'all';
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === filter));
+            applyFilter();
+        }
+
+        function applyFilter() {
+            const val = searchInput ? searchInput.value.toLowerCase().trim() : '';
+            const favs = getFavorites();
+            const ratings = getGameRatings();
+            let count = 0;
+            Array.from(gameButtons).forEach(btn => {
+                const name = btn.childNodes[0].textContent.trim();
+                let visible = name.toLowerCase().includes(val);
+                if (visible && currentFilter === 'favorites') {
+                    visible = favs.includes(name);
+                } else if (visible && currentFilter === 'rated') {
+                    visible = !!ratings[name];
+                }
+                btn.style.display = visible ? '' : 'none';
+                if (visible) count++;
+            });
+            gameCounter.textContent = val === '' && currentFilter === 'all'
+                ? gameButtons.length + ' games available'
+                : count + ' games found';
+        }
+
+        const GAMES_BASE_URL = '';
+
+        function openGame(url, name) {
+            var a = Obsidian.getAdminSettings();
+            if (a.disableGameLaunch && !sessionStorage.getItem('obsidian_admin')) {
+                Obsidian.showToast('Games are disabled by admin', 'error');
+                return;
+            }
+            const resolvedUrl = (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('//'))
+                ? url
+                : GAMES_BASE_URL + url;
+            currentGameName = name;
+            currentGameUrl = resolvedUrl;
+            gameTitle.textContent = name;
+            gameIframe.src = resolvedUrl;
+            gameModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            // Load saved rating
+            const ratings = getGameRatings();
+            updateStarDisplay(ratings[name] || 0);
+            // Track recently played
+            addRecentGame(url, name);
+            renderRecentGames();
+            // Update fav button in modal
+            updateGameModalFav();
+            // Start play time tracking
+            Obsidian.PlayTime.startTracking(name);
+        }
+
+        function updateGameModalFav() {
+            const favBtn = document.getElementById('game-fav-btn');
+            if (!favBtn) return;
+            const favs = getFavorites();
+            favBtn.classList.toggle('fav-active', favs.includes(currentGameName));
+            favBtn.title = favs.includes(currentGameName) ? 'Remove from Favorites' : 'Add to Favorites';
+        }
+
+        function closeGame() {
+            // Stop play time tracking
+            Obsidian.PlayTime.stopTracking();
+            gameModal.style.display = 'none';
+            gameIframe.src = '';
+            document.body.style.overflow = 'auto';
+            currentGameName = '';
+            currentGameUrl = '';
+            // Refresh stats
+            initStatsBar();
+        }
+
+        function reloadGame() {
+            if (currentGameUrl) {
+                gameIframe.src = '';
+                setTimeout(() => { gameIframe.src = currentGameUrl; }, 50);
+            }
+        }
+
+        function fullscreenGame() {
+            if (gameIframe.requestFullscreen) gameIframe.requestFullscreen();
+            else if (gameIframe.webkitRequestFullscreen) gameIframe.webkitRequestFullscreen();
+        }
+
+        closeGameBtn.addEventListener('click', closeGame);
+        gameReloadBtn.addEventListener('click', reloadGame);
+        gameFullscreenBtn.addEventListener('click', fullscreenGame);
+        gameModal.addEventListener('click', (e) => { if (e.target === gameModal) closeGame(); });
+
+        // Keyboard shortcut: Esc to close game
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && gameModal.style.display === 'flex') closeGame();
+        });
+
+        // ---- Scroll to top button ----
+        const scrollBtn = document.createElement('button');
+        scrollBtn.id = 'scroll-top-btn';
+        scrollBtn.className = 'scroll-top-btn';
+        scrollBtn.title = 'Back to top';
+        scrollBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>';
+        scrollBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+        document.body.appendChild(scrollBtn);
+        window.addEventListener('scroll', () => {
+            scrollBtn.classList.toggle('visible', window.scrollY > 400);
+        });
+
+        // ---- Init favorites + recent ----
+        updateFavoriteButtons();
+        renderRecentGames();
+
+        // ---- REAL-TIME ANNOUNCEMENT SYSTEM ----
+        function initAnnouncementSystem() {
+            // Check on load
+            var ann = Obsidian.Announcements.getActive();
+            if (ann && Obsidian.Announcements.shouldShow(ann)) {
+                showAnnouncement(ann);
+            }
+            // Listen for cross-tab broadcasts via storage event
+            Obsidian.Announcements.initListener(
+                function(a) { showAnnouncement(a); },
+                function() { closeAnnouncement(); }
+            );
+        }
+
+        function showAnnouncement(data) {
+            var overlay = document.getElementById('announcement-overlay');
+            var modal = document.getElementById('announcement-modal');
+            var type = data.type || 'info';
+            document.getElementById('announcement-title').textContent = data.title || 'Announcement';
+            document.getElementById('announcement-message').textContent = data.message;
+            modal.className = 'announcement-modal announcement-' + type;
+            document.getElementById('announcement-close').style.display = data.dismissible !== false ? 'inline-flex' : 'none';
+            window.currentAnnouncementId = data.id || data.timestamp;
+
+            // Set icon based on type
+            var icons = {
+                info:    '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+                warning: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+                error:   '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+                success: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'
+            };
+            var iconWrap = document.getElementById('announcement-icon-wrap');
+            if (iconWrap) iconWrap.innerHTML = icons[type] || icons.info;
+
+            overlay.style.display = 'flex';
+        }
+
+        function closeAnnouncement() {
+            document.getElementById('announcement-overlay').style.display = 'none';
+            if (window.currentAnnouncementId) {
+                Obsidian.Announcements.dismiss(window.currentAnnouncementId);
+            }
+        }
+
+        // ---- STATS BAR ----
+        function initStatsBar() {
+            var bar = document.getElementById('stats-bar');
+            if (!bar) return;
+            var totalGames = gameButtons.length;
+            // Show local stats first, then update with combined stats from backend
+            var onlineCount = Obsidian.Socket.getOnlineCount() || 0;
+            bar.innerHTML =
+                '<div class="stat-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg><span class="stat-pill-value" data-obsidian-online>' + onlineCount + '</span> Online</div>' +
+                '<div class="stat-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span class="stat-pill-value">' + totalGames + '</span> Games</div>' +
+                '<div class="stat-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span class="stat-pill-value" id="combined-favorites">...</span> Favorites</div>' +
+                '<div class="stat-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span class="stat-pill-value" id="combined-playtime">...</span> Played</div>' +
+                '<div class="stat-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span class="stat-pill-value" id="combined-users">...</span> Users</div>';
+            // Fetch combined stats from backend
+            Obsidian.Stats.getCombined().then(function(stats) {
+                if (!stats) return;
+                var favEl = document.getElementById('combined-favorites');
+                var timeEl = document.getElementById('combined-playtime');
+                var usersEl = document.getElementById('combined-users');
+                if (favEl) favEl.textContent = stats.total_favorites || 0;
+                if (timeEl) timeEl.textContent = Obsidian.PlayTime.formatTime((stats.total_time || 0) * 1000);
+                if (usersEl) usersEl.textContent = stats.unique_users || 0;
+            });
+        }
+
+        // ---- FAVORITES STRIP ----
+        function initFavoritesStrip() {
+            var favs = getFavorites();
+            var strip = document.getElementById('favorites-strip');
+            var container = document.getElementById('favorites-strip-games');
+            if (!strip || !container) return;
+            if (favs.length === 0) { strip.style.display = 'none'; return; }
+            strip.style.display = '';
+            container.innerHTML = '';
+            var allGames = getAllGameData();
+            favs.forEach(function(favName) {
+                var g = allGames.find(function(x){ return x.name === favName; });
+                if (g) {
+                    var btn = document.createElement('button');
+                    btn.className = 'favorites-strip-btn';
+                    btn.textContent = favName;
+                    btn.onclick = function() { openGame(g.url, g.name); };
+                    container.appendChild(btn);
+                }
+            });
+        }
+
+        // ---- KEYBOARD SHORTCUTS ----
+        function initKeyboardShortcutsModal() {
+            var overlay = document.createElement('div');
+            overlay.className = 'shortcuts-modal-overlay';
+            overlay.id = 'shortcuts-overlay';
+            overlay.innerHTML = '<div class="shortcuts-modal">' +
+                '<h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10"/></svg> Keyboard Shortcuts</h3>' +
+                '<div class="shortcut-item"><span>Focus Search</span><kbd>/</kbd></div>' +
+                '<div class="shortcut-item"><span>Clear Search</span><kbd>Esc</kbd></div>' +
+                '<div class="shortcut-item"><span>Close Game</span><kbd>Esc</kbd></div>' +
+                '<div class="shortcut-item"><span>Random Game</span><kbd>R</kbd></div>' +
+                '<div class="shortcut-item"><span>Show Shortcuts</span><kbd>?</kbd></div>' +
+                '<div class="shortcut-item"><span>Scroll to Top</span><kbd>T</kbd></div>' +
+                '<button class="shortcuts-close" onclick="hideKeyboardShortcuts()">Close</button>' +
+                '</div>';
+            document.body.appendChild(overlay);
+            overlay.addEventListener('click', function(e) { if (e.target === overlay) hideKeyboardShortcuts(); });
+        }
+        function showKeyboardShortcuts() {
+            document.getElementById('shortcuts-overlay').classList.add('active');
+        }
+        function hideKeyboardShortcuts() {
+            document.getElementById('shortcuts-overlay').classList.remove('active');
+        }
+
+        // ---- EXTRA KEYBOARD SHORTCUTS ----
+        document.addEventListener('keydown', function(e) {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            if (e.key === '?') { showKeyboardShortcuts(); }
+            if (e.key === 'r' || e.key === 'R') { if (gameModal.style.display !== 'flex') openRandomGame(); }
+            if (e.key === 't' || e.key === 'T') { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        });
+
+        // ---- RANDOM GAME ----
+        function openRandomGame() {
+            var visibleBtns = Array.from(gameButtons).filter(function(b){ return b.style.display !== 'none' && !b.classList.contains('game-hidden'); });
+            if (visibleBtns.length === 0) return;
+            var btn = visibleBtns[Math.floor(Math.random() * visibleBtns.length)];
+            btn.click();
+        }
+
+        // ---- GET ALL GAME DATA ----
+        function getAllGameData() {
+            var arr = [];
+            Array.from(gameButtons).forEach(function(btn) {
+                var oc = btn.getAttribute('onclick') || '';
+                var m = oc.match(/openGame\('([^']+)',\s*'([^']+)'\)/);
+                if (m) arr.push({ url: m[1], name: m[2], btn: btn });
+            });
+            return arr;
+        }
+
+        // ---- SORT & FILTER ----
+        var originalOrder = [];
+        (function() {
+            Array.from(document.querySelectorAll('.game-grid .game-button')).forEach(function(btn, i) {
+                originalOrder.push({ btn: btn, index: i });
+            });
+        })();
+
+        function applySortAndFilter() {
+            var sort = document.getElementById('sort-select').value;
+            var grid = document.querySelector('.game-grid');
+            var btns = Array.from(grid.querySelectorAll('.game-button'));
+            var ratings = getGameRatings();
+            var playData = Obsidian.PlayTime.getData();
+
+            if (sort === 'az') {
+                btns.sort(function(a,b){ return a.textContent.trim().localeCompare(b.textContent.trim()); });
+            } else if (sort === 'za') {
+                btns.sort(function(a,b){ return b.textContent.trim().localeCompare(a.textContent.trim()); });
+            } else if (sort === 'rating') {
+                btns.sort(function(a,b){ return (ratings[b.textContent.trim()]||0) - (ratings[a.textContent.trim()]||0); });
+            } else if (sort === 'mostPlayed') {
+                btns.sort(function(a,b){
+                    var aT = (playData[a.textContent.trim()] && playData[a.textContent.trim()].totalTime) || 0;
+                    var bT = (playData[b.textContent.trim()] && playData[b.textContent.trim()].totalTime) || 0;
+                    return bT - aT;
+                });
+            } else {
+                // Restore original order
+                btns = originalOrder.map(function(o){ return o.btn; });
+            }
+            btns.forEach(function(btn) { grid.appendChild(btn); });
+            applyFilter();
+        }
+
+        // ---- HIDDEN GAMES (admin feature) ----
+        function applyHiddenGames() {
+            var hidden = Obsidian.getHiddenGames();
+            if (!hidden || !hidden.length) return;
+            Array.from(gameButtons).forEach(function(btn) {
+                var name = btn.textContent.trim();
+                if (hidden.indexOf(name) !== -1) btn.classList.add('game-hidden');
+            });
+        }
+
+        // ---- SITE TITLE OVERRIDE (admin feature) ----
+        function applySiteTitle() {
+            var a = Obsidian.getAdminSettings();
+            if (a.siteTitle) {
+                var h1 = document.querySelector('.app-name h1');
+                if (h1) h1.textContent = a.siteTitle;
+            }
+            if (a.siteSubtitle) {
+                var sub = document.querySelector('.subtitle');
+                if (sub) sub.textContent = a.siteSubtitle;
+            }
+        }
+
+        function applyAdminRestrictions() {
+            var a = Obsidian.getAdminSettings();
+            var isAdmin = !!sessionStorage.getItem('obsidian_admin');
+
+            var gamesBtn = document.querySelector('.tab-btn[data-tab="games"]');
+            var mediaBtn = document.querySelector('.tab-btn[data-tab="media"]');
+            var settingsBtn = document.querySelector('.tab-btn[data-tab="settings"]');
+
+            // Disable tabs
+            if (a.disableMediaTab && mediaBtn && !isAdmin) {
+                mediaBtn.style.display = 'none';
+                var mediaTab = document.getElementById('media-tab');
+                if (mediaTab) mediaTab.style.display = 'none';
+
+                // Ensure games tab is visible/active
+                document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+                if (gamesBtn) gamesBtn.classList.add('active');
+                var gamesTab = document.getElementById('games-tab');
+                if (gamesTab) gamesTab.style.display = '';
+            }
+
+            if (a.disableSettingsPage && settingsBtn && !isAdmin) {
+                settingsBtn.style.display = 'none';
+            }
+
+            // Disable uploads
+            if (a.disableMediaUploads && !isAdmin) {
+                var area = document.getElementById('media-upload-area');
+                var input = document.getElementById('media-file-input');
+                if (input) input.disabled = true;
+                if (area) {
+                    area.classList.add('disabled');
+                    area.onclick = function(e) {
+                        if (e) e.stopPropagation();
+                        Obsidian.showToast('Media uploads are disabled by admin', 'error');
+                    };
+                    var t = area.querySelector('.media-upload-text');
+                    if (t) t.textContent = 'Uploads disabled by admin';
+                }
+            }
+        }
+
+        // ============================================
+        // MEDIA LIBRARY & PLAYER
+        // ============================================
+        var mediaCurrentFilter = 'all';
+
+        // Default media from root directory (visible to all users)
+        var defaultMedia = [
+            { id: 'default_mie_jumpscare', name: 'mie_jumpscare.png', type: 'image', data: 'mie_jumpscare.png', size: 0, isDefault: true },
+            { id: 'default_mie3', name: 'mie3.png', type: 'image', data: 'mie3.png', size: 0, isDefault: true },
+            { id: 'default_photo_1', name: 'photo_placeholder_1.png', type: 'image', data: 'photo_placeholder_1.png', size: 0, isDefault: true },
+            { id: 'default_photo_2', name: 'photo_placeholder_2.png', type: 'image', data: 'photo_placeholder_2.png', size: 0, isDefault: true },
+            { id: 'default_photo_3', name: 'photo_placeholder_3.png', type: 'image', data: 'photo_placeholder_3.png', size: 0, isDefault: true },
+            { id: 'default_c++_video', name: 'learn c++', type: 'video', data: 'video_placeholder_1.mp4', size: 0, isDefault: true },
+            { id: 'default_video_2', name: 'video_placeholder_2.mp4', type: 'video', data: 'video_placeholder_2.mp4', size: 0, isDefault: true },
+            { id: 'default_video_3', name: 'video_placeholder_3.mp4', type: 'video', data: 'video_placeholder_3.mp4', size: 0, isDefault: true }
+        ];
+
+        function handleMediaUpload(event) {
+            var files = event.target.files;
+            if (!files || !files.length) return;
+
+            var a = Obsidian.getAdminSettings();
+            if (a.disableMediaUploads && !sessionStorage.getItem('obsidian_admin')) {
+                Obsidian.showToast('Media uploads are disabled by admin', 'error');
+                event.target.value = '';
+                return;
+            }
+            var count = 0;
+            Array.from(files).forEach(function(file) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var type = file.type.startsWith('video') ? 'video' : 'image';
+                    Obsidian.Media.add({
+                        name: file.name,
+                        type: type,
+                        mimeType: file.type,
+                        data: e.target.result,
+                        size: file.size
+                    });
+                    count++;
+                    if (count === files.length) {
+                        renderMediaLibrary();
+                        Obsidian.showToast(count + ' file(s) added to media library', 'success');
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+            event.target.value = '';
+        }
+
+        // Drag and drop
+        (function() {
+            var area = document.getElementById('media-upload-area');
+            if (!area) return;
+            ['dragenter','dragover'].forEach(function(ev) {
+                area.addEventListener(ev, function(e) { e.preventDefault(); area.classList.add('drag-over'); });
+            });
+            ['dragleave','drop'].forEach(function(ev) {
+                area.addEventListener(ev, function(e) { e.preventDefault(); area.classList.remove('drag-over'); });
+            });
+            area.addEventListener('drop', function(e) {
+                var dt = e.dataTransfer;
+                if (dt && dt.files && dt.files.length) {
+                    handleMediaUpload({ target: { files: dt.files }, preventDefault: function(){} });
+                }
+            });
+        })();
+
+        function renderMediaLibrary() {
+            var items = defaultMedia.concat(Obsidian.Media.getAll());
+            if (mediaCurrentFilter !== 'all') {
+                items = items.filter(function(i) { return i.type === mediaCurrentFilter; });
+            }
+            var grid = document.getElementById('media-grid');
+            var empty = document.getElementById('media-empty');
+            var countEl = document.getElementById('media-count');
+            var allCount = defaultMedia.length + Obsidian.Media.getAll().length;
+            countEl.textContent = allCount + ' item' + (allCount !== 1 ? 's' : '');
+
+            if (items.length === 0) {
+                grid.innerHTML = '';
+                empty.style.display = '';
+                return;
+            }
+            empty.style.display = 'none';
+            grid.innerHTML = '';
+            items.forEach(function(item) {
+                var card = document.createElement('div');
+                card.className = 'media-card';
+                card.onclick = function() { openMediaPlayer(item); };
+
+                // Type badge
+                var badge = document.createElement('span');
+                badge.className = 'media-card-type-badge';
+                badge.textContent = item.type === 'video' ? 'VIDEO' : 'IMG';
+                card.appendChild(badge);
+
+                // Delete btn
+                var del = document.createElement('button');
+                del.className = 'media-card-delete';
+                del.innerHTML = '&times;';
+                del.title = 'Remove';
+                del.onclick = function(e) {
+                    e.stopPropagation();
+                    Obsidian.Media.remove(item.id);
+                    renderMediaLibrary();
+                    Obsidian.showToast('Media removed', 'info');
+                };
+                if (!item.isDefault) card.appendChild(del);
+
+                // Thumbnail
+                if (item.type === 'image') {
+                    var img = document.createElement('img');
+                    img.className = 'media-card-thumb';
+                    img.src = item.data;
+                    img.alt = item.name;
+                    img.onerror = function() {
+                        try { img.remove(); } catch(e) {}
+                        var ph = document.createElement('div');
+                        ph.className = 'media-card-video-thumb';
+                        ph.innerHTML = 'IMG';
+                        card.appendChild(ph);
+                    };
+                    card.appendChild(img);
+                } else {
+                    var vthumb = document.createElement('div');
+                    vthumb.className = 'media-card-video-thumb';
+                    vthumb.innerHTML = '&#9654;';
+                    card.appendChild(vthumb);
+                }
+
+                // Info
+                var info = document.createElement('div');
+                info.className = 'media-card-info';
+                var nameEl = document.createElement('div');
+                nameEl.className = 'media-card-name';
+                nameEl.textContent = item.name;
+                var meta = document.createElement('div');
+                meta.className = 'media-card-meta';
+                var sizeStr = item.size < 1024*1024 ? (item.size/1024).toFixed(1)+' KB' : (item.size/(1024*1024)).toFixed(1)+' MB';
+                meta.textContent = item.type + ' · ' + sizeStr;
+                info.appendChild(nameEl);
+                info.appendChild(meta);
+                card.appendChild(info);
+                grid.appendChild(card);
+            });
+        }
+
+        function filterMedia(type, btn) {
+            mediaCurrentFilter = type;
+            document.querySelectorAll('.media-filter-btn').forEach(function(b) { b.classList.toggle('active', b.getAttribute('data-mfilter') === type); });
+            renderMediaLibrary();
+        }
+
+        function clearAllMedia() {
+            Obsidian.showConfirmModal('Delete all media? This cannot be undone.', function() {
+                Obsidian.Media.clear();
+                renderMediaLibrary();
+                Obsidian.showToast('All media cleared', 'info');
+            });
+        }
+
+        // ---- Media Player ----
+        var mediaPlayerVideo = null;
+        var mediaProgressInterval = null;
+
+        function openMediaPlayer(item) {
+            var overlay = document.getElementById('media-player-overlay');
+            var content = document.getElementById('media-player-content');
+            var controls = document.getElementById('media-controls-bar');
+            var title = document.getElementById('media-player-title');
+            var container = document.getElementById('media-player-container');
+            container.classList.remove('fullscreen');
+            title.textContent = item.name;
+            content.innerHTML = '';
+            clearInterval(mediaProgressInterval);
+            mediaPlayerVideo = null;
+
+            if (item.type === 'image') {
+                var img = document.createElement('img');
+                img.src = item.data;
+                img.alt = item.name;
+                img.onerror = function() {
+                    content.innerHTML = '<div style="padding:1rem;text-align:center;color:var(--text-secondary);">Missing image: <strong>' + item.data + '</strong><br>Place it in the site root folder.</div>';
+                };
+                content.appendChild(img);
+                controls.style.display = 'none';
+            } else {
+                var vid = document.createElement('video');
+                vid.src = item.data;
+                vid.preload = 'metadata';
+                vid.style.width = '100%';
+                vid.style.maxHeight = '70vh';
+                content.appendChild(vid);
+                controls.style.display = 'flex';
+                mediaPlayerVideo = vid;
+
+                vid.addEventListener('error', function() {
+                    controls.style.display = 'none';
+                    mediaPlayerVideo = null;
+                    clearInterval(mediaProgressInterval);
+                    content.innerHTML = '<div style="padding:1rem;text-align:center;color:var(--text-secondary);">Missing video: <strong>' + item.data + '</strong><br>Place it in the site root folder.</div>';
+                    Obsidian.showToast('Video file not found: ' + item.data, 'error');
+                });
+
+                vid.addEventListener('loadedmetadata', function() {
+                    document.getElementById('media-duration').textContent = formatMediaTime(vid.duration);
+                });
+                vid.addEventListener('ended', function() {
+                    updatePlayIcon(false);
+                });
+                mediaProgressInterval = setInterval(updateMediaProgress, 250);
+            }
+
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMediaPlayer() {
+            var overlay = document.getElementById('media-player-overlay');
+            overlay.classList.remove('active');
+            document.body.style.overflow = 'auto';
+            if (mediaPlayerVideo) {
+                mediaPlayerVideo.pause();
+                mediaPlayerVideo = null;
+            }
+            clearInterval(mediaProgressInterval);
+        }
+
+        function toggleMediaPlay() {
+            if (!mediaPlayerVideo) return;
+            if (mediaPlayerVideo.paused) {
+                mediaPlayerVideo.play();
+                updatePlayIcon(true);
+            } else {
+                mediaPlayerVideo.pause();
+                updatePlayIcon(false);
+            }
+        }
+
+        function updatePlayIcon(playing) {
+            var icon = document.getElementById('media-play-icon');
+            if (playing) {
+                icon.innerHTML = '<rect x="6" y="4" width="4" height="16" fill="currentColor"/><rect x="14" y="4" width="4" height="16" fill="currentColor"/>';
+            } else {
+                icon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3" fill="currentColor"/>';
+            }
+        }
+
+        function mediaSkip(sec) {
+            if (!mediaPlayerVideo) return;
+            mediaPlayerVideo.currentTime = Math.max(0, Math.min(mediaPlayerVideo.duration || 0, mediaPlayerVideo.currentTime + sec));
+            updateMediaProgress();
+        }
+
+        function seekMedia(event) {
+            if (!mediaPlayerVideo) return;
+            var bar = document.getElementById('media-progress-bar');
+            var rect = bar.getBoundingClientRect();
+            var pct = (event.clientX - rect.left) / rect.width;
+            mediaPlayerVideo.currentTime = pct * (mediaPlayerVideo.duration || 0);
+            updateMediaProgress();
+        }
+
+        function setMediaVolume(val) {
+            if (!mediaPlayerVideo) return;
+            mediaPlayerVideo.volume = parseFloat(val);
+        }
+
+        function updateMediaProgress() {
+            if (!mediaPlayerVideo) return;
+            var ct = mediaPlayerVideo.currentTime;
+            var dur = mediaPlayerVideo.duration || 0;
+            document.getElementById('media-current-time').textContent = formatMediaTime(ct);
+            document.getElementById('media-duration').textContent = formatMediaTime(dur);
+            var pct = dur > 0 ? (ct / dur) * 100 : 0;
+            document.getElementById('media-progress-fill').style.width = pct + '%';
+        }
+
+        function formatMediaTime(s) {
+            if (!s || isNaN(s)) return '0:00';
+            var m = Math.floor(s / 60);
+            var sec = Math.floor(s % 60);
+            return m + ':' + (sec < 10 ? '0' : '') + sec;
+        }
+
+        function toggleMediaFullscreen() {
+            var container = document.getElementById('media-player-container');
+            container.classList.toggle('fullscreen');
+        }
+
+        // Close media player on Esc
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                var overlay = document.getElementById('media-player-overlay');
+                if (overlay && overlay.classList.contains('active')) {
+                    closeMediaPlayer();
+                }
+            }
+            // Space to toggle play when media player is open
+            if (e.key === ' ' && document.getElementById('media-player-overlay').classList.contains('active') && mediaPlayerVideo) {
+                e.preventDefault();
+                toggleMediaPlay();
+            }
+        });
+
+        // ---- Jumpscare Feature ----
+        (function initJumpscare() {
+            var JUMPSCARE_IMG = 'mie_jumpscare.png';
+            var MIN_DELAY = 10 * 60 * 1000;
+            var MAX_DELAY = 20 * 60 * 1000;
+            var DISPLAY_DURATION = 3000;
+
+            function getRandomDelay() {
+                return Math.floor(Math.random() * (MAX_DELAY - MIN_DELAY + 1)) + MIN_DELAY;
+            }
+
+            function triggerJumpscare() {
+                var overlay = document.createElement('div');
+                overlay.className = 'jumpscare-overlay';
+                var img = document.createElement('img');
+                img.src = JUMPSCARE_IMG;
+                img.className = 'jumpscare-img';
+                overlay.appendChild(img);
+                document.body.appendChild(overlay);
+                requestAnimationFrame(function() {
+                    overlay.classList.add('active');
+                });
+                setTimeout(function() {
+                    overlay.classList.remove('active');
+                    setTimeout(function() { overlay.remove(); }, 300);
+                }, DISPLAY_DURATION);
+                scheduleJumpscare();
+            }
+
+            function scheduleJumpscare() {
+                var delay = getRandomDelay();
+                setTimeout(triggerJumpscare, delay);
+            }
+
+            scheduleJumpscare();
+        })();
+    </script>
+</body>
+</html>
