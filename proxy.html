@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Obsidian - Proxy</title>
+    <link rel="icon" type="image/png" href="obsidian.png">
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        .proxy-wrap {
+            max-width: 520px;
+            margin: 5vh auto 0;
+            padding: 0 1.5rem 3rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 0;
+        }
+
+        .proxy-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 18px;
+            background: rgba(var(--primary-rgb), 0.1);
+            border: 1px solid rgba(var(--primary-rgb), 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .proxy-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            background: rgba(var(--primary-rgb), 0.1);
+            border: 1px solid rgba(var(--primary-rgb), 0.2);
+            color: var(--primary);
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 1.25rem;
+        }
+
+        .proxy-title {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.03em;
+            margin: 0 0 0.75rem;
+            line-height: 1.2;
+        }
+
+        .proxy-desc {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            line-height: 1.65;
+            margin: 0 0 2.5rem;
+            max-width: 380px;
+        }
+
+        .proxy-features {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.6rem;
+            margin-bottom: 2rem;
+        }
+
+        .proxy-feature {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0.9rem 1rem;
+            text-align: left;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.65rem;
+        }
+
+        .proxy-feature-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            background: rgba(var(--primary-rgb), 0.1);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .proxy-feature-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.15rem;
+        }
+
+        .proxy-feature-desc {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .proxy-divider {
+            width: 100%;
+            height: 1px;
+            background: var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .proxy-note {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <script src="theme-init.js"></script>
+    <script src="auth-guard.js"></script>
+
+    <div class="page-wrapper" id="page-wrapper">
+        <header class="header animate-fade-in">
+            <div class="browser-bar">
+                <div class="left-section">
+                    <img src="obsidian.png" alt="Obsidian Logo" class="logo">
+                    <a href="#" class="app-name" onclick="event.preventDefault(); sessionStorage.setItem('obsidian_show_welcome','true'); window.location.href='main.html';"><h1>Obsidian</h1></a>
+                </div>
+                <nav class="tab-navigation">
+                    <button class="tab-btn" data-tab="games" onclick="window.location.href='main.html'">Games</button>
+                    <button class="tab-btn" data-tab="media" onclick="window.location.href='media.html'">Media</button>
+                    <button class="tab-btn" data-tab="chat" onclick="window.location.href='chat.html'">Chat</button>
+                    <button class="tab-btn" data-tab="ai" onclick="window.location.href='ai.html'">AI</button>
+                    <button class="tab-btn active" data-tab="proxy">Proxy</button>
+                    <button class="tab-btn" data-tab="settings" onclick="window.location.href='settings.html'">Settings</button>
+                    <button class="tab-btn" data-tab="credits" onclick="window.location.href='credits.html'">Credits</button>
+                </nav>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="proxy-wrap animate-slide-up">
+
+                <div class="proxy-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                </div>
+
+                <span class="proxy-badge">
+                    <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="currentColor"/></svg>
+                    Coming Soon
+                </span>
+
+                <h2 class="proxy-title">Web Proxy</h2>
+                <p class="proxy-desc">A fast, built-in web proxy is on the way. Browse any site directly through Obsidian without leaving the page.</p>
+
+                <div class="proxy-features">
+                    <div class="proxy-feature">
+                        <div class="proxy-feature-icon">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        </div>
+                        <div>
+                            <div class="proxy-feature-title">Private Browsing</div>
+                            <div class="proxy-feature-desc">Routes traffic through the proxy to keep your activity hidden</div>
+                        </div>
+                    </div>
+                    <div class="proxy-feature">
+                        <div class="proxy-feature-icon">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 2 13 9 20 9"/><path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34"/><polygon points="18 2 22 6 12 16 8 16 8 12 18 2"/></svg>
+                        </div>
+                        <div>
+                            <div class="proxy-feature-title">URL Bar</div>
+                            <div class="proxy-feature-desc">Type any URL and load it inside Obsidian instantly</div>
+                        </div>
+                    </div>
+                    <div class="proxy-feature">
+                        <div class="proxy-feature-icon">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                        </div>
+                        <div>
+                            <div class="proxy-feature-title">Fullscreen</div>
+                            <div class="proxy-feature-desc">Expand to fill the screen just like the game viewer</div>
+                        </div>
+                    </div>
+                    <div class="proxy-feature">
+                        <div class="proxy-feature-icon">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+                        </div>
+                        <div>
+                            <div class="proxy-feature-title">Tab Cloaking</div>
+                            <div class="proxy-feature-desc">Works with your existing cloak settings automatically</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="proxy-divider"></div>
+                <p class="proxy-note">Check back soon — this feature is actively being built.</p>
+
+            </div>
+        </main>
+
+        <footer class="watermark">
+            <p>made by anonymous</p>
+        </footer>
+    </div>
+
+    <script src="theme.js"></script>
+    <script src='https://cdn.jotfor.ms/agent/embedjs/019cf974cd4b78f1aa23f266e0c94f2017ad/embed.js'></script>
+</body>
+</html>
