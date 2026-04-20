@@ -1,0 +1,451 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mathematics - 10th Grade</title>
+    <style>
+        body {
+            font-family: "Times New Roman", Times, serif;
+            background-color: #f5f5f5;
+            background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23cccccc' fill-opacity='0.1'%3E%3Cpath d='m0 40l40-40h-40v40zm40 0v-40h-40l40 40z'/%3E%3C/g%3E%3C/svg%3E");
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.4;
+        }
+
+        .header {
+            background: linear-gradient(to bottom, #e0e0e0, #d0d0d0);
+            border: 3px ridge #999;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 4px 4px 8px #ccc;
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+
+        .app-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+            text-shadow: 2px 2px 0px #bbb;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+            text-decoration: underline;
+        }
+
+        .main-content {
+            max-width: 700px;
+            margin: 0 auto;
+            background: linear-gradient(to bottom, #ffffff, #f8f8f8);
+            border: 3px ridge #999;
+            padding: 20px;
+            box-shadow: 6px 6px 12px #ccc;
+        }
+
+        .test-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px groove #999;
+            padding-bottom: 15px;
+        }
+
+        .test-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            text-decoration: underline;
+            text-shadow: 1px 1px 0px #bbb;
+        }
+
+        .test-subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        .test-info {
+            background: linear-gradient(to bottom, #e8e8e8, #d8d8d8);
+            border: 3px inset #999;
+            padding: 10px;
+            margin: 15px 0;
+            font-size: 12px;
+            font-family: "Courier New", monospace;
+            color: #333;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #ddd;
+            border: 3px inset #999;
+            margin: 15px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, #4CAF50, #45a049);
+            transition: width 0.5s ease;
+        }
+
+        .question-block {
+            margin-bottom: 25px;
+            padding: 15px;
+            border: 3px ridge #999;
+            background: linear-gradient(to bottom, #ffffff, #f8f8f8);
+        }
+
+        .question-number {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            text-decoration: underline;
+            font-family: "Courier New", monospace;
+        }
+
+        .question-text {
+            font-size: 14px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .answer-options {
+            margin-left: 20px;
+        }
+
+        .option {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .option input[type="radio"] {
+            margin-right: 8px;
+        }
+
+        .test-actions {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 3px groove #999;
+        }
+
+        .submit-btn, .reset-btn {
+            background: linear-gradient(to bottom, #e0e0e0, #d0d0d0);
+            color: #333;
+            border: 3px outset #999;
+            padding: 8px 16px;
+            margin: 0 10px;
+            cursor: pointer;
+            font-size: 13px;
+            font-family: "Times New Roman", Times, serif;
+            font-weight: bold;
+            text-shadow: 1px 1px 0px #fff;
+        }
+
+        .submit-btn:hover, .reset-btn:hover {
+            background: linear-gradient(to bottom, #d0d0d0, #e0e0e0);
+        }
+
+        .reset-btn {
+            background: linear-gradient(to bottom, #f0f0f0, #e0e0e0);
+            border-color: #999;
+        }
+
+        .reset-btn:hover {
+            background: linear-gradient(to bottom, #e0e0e0, #f0f0f0);
+        }
+
+        .test-result {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(to bottom, #f0f0f0, #e8e8e8);
+            border: 3px ridge #999;
+            margin-top: 20px;
+        }
+
+        .test-result h3 {
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 10px;
+            text-decoration: underline;
+            text-shadow: 1px 1px 0px #bbb;
+        }
+
+        .test-result p {
+            font-size: 14px;
+            color: #333;
+        }
+
+        #x123btn {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            width: 20px;
+            height: 20px;
+            opacity: 0;
+            background: transparent;
+            border: none;
+            cursor: default;
+            z-index: 1000;
+        }
+
+        #x123btn:hover {
+            opacity: 0;
+        }
+
+        .watermark {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 10px;
+            color: #999;
+            font-style: italic;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+
+        .blink {
+            animation: blink 2s infinite;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            
+            .main-content {
+                padding: 15px;
+            }
+            
+            .test-title {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 class="app-name">Educational Assessment Portal</h1>
+        <div class="subtitle blink">Standardized Mathematics Testing System v2.1</div>
+    </div>
+
+    <div class="main-content">
+        <div class="test-header">
+            <h1 class="test-title">Mathematics Proficiency Assessment</h1>
+            <p class="test-subtitle">Please complete all questions to proceed with your evaluation</p>
+            <div class="test-info">
+                <strong>Instructions:</strong> This assessment contains 5 multiple-choice questions. 
+                You have 10 minutes to complete the test. Select the best answer for each question.
+                <br><strong>Time Limit:</strong> 10 minutes | <strong>Questions:</strong> 5 | <strong>Passing Score:</strong> 60%
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill" style="width: 0%;"></div>
+            </div>
+        </div>
+
+        <form id="math-test-form">
+            <div class="question-block">
+                <div class="question-number">Question 1 of 5</div>
+                <div class="question-text">Calculate the sum: 15 + 27 = ?</div>
+                <div class="answer-options">
+                    <label class="option">
+                        <input type="radio" name="q1" value="a"> A) 32
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q1" value="b"> B) 42
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q1" value="c"> C) 41
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q1" value="d"> D) 43
+                    </label>
+                </div>
+            </div>
+
+            <div class="question-block">
+                <div class="question-number">Question 2 of 5</div>
+                <div class="question-text">Solve the equation: 3x + 9 = 24</div>
+                <div class="answer-options">
+                    <label class="option">
+                        <input type="radio" name="q2" value="a"> A) x = 4
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q2" value="b"> B) x = 5
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q2" value="c"> C) x = 6
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q2" value="d"> D) x = 7
+                    </label>
+                </div>
+            </div>
+
+            <div class="question-block">
+                <div class="question-number">Question 3 of 5</div>
+                <div class="question-text">Calculate: 8² - 4² = ?</div>
+                <div class="answer-options">
+                    <label class="option">
+                        <input type="radio" name="q3" value="a"> A) 32
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q3" value="b"> B) 48
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q3" value="c"> C) 52
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q3" value="d"> D) 60
+                    </label>
+                </div>
+            </div>
+
+            <div class="question-block">
+                <div class="question-number">Question 4 of 5</div>
+                <div class="question-text">In a triangle with angles 60° and 70°, what is the measure of the third angle?</div>
+                <div class="answer-options">
+                    <label class="option">
+                        <input type="radio" name="q4" value="a"> A) 40°
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q4" value="b"> B) 50°
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q4" value="c"> C) 60°
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q4" value="d"> D) 70°
+                    </label>
+                </div>
+            </div>
+
+            <div class="question-block">
+                <div class="question-number">Question 5 of 5</div>
+                <div class="question-text">What is 25% of 80?</div>
+                <div class="answer-options">
+                    <label class="option">
+                        <input type="radio" name="q5" value="a"> A) 15
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q5" value="b"> B) 20
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q5" value="c"> C) 25
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q5" value="d"> D) 30
+                    </label>
+                </div>
+            </div>
+
+            <div class="test-actions">
+                <button type="button" class="submit-btn" onclick="submitTest()">Submit Assessment</button>
+                <button type="button" class="reset-btn" onclick="resetTest()">Clear Answers</button>
+            </div>
+        </form>
+
+        <div id="test-result" class="test-result" style="display: none;">
+            <h3>Assessment Complete</h3>
+            <p id="score-display"></p>
+            <p><em>Results have been recorded in the system database.</em></p>
+        </div>
+
+        <button id="x123btn" onclick="redirectToLocked()">Hidden Access</button>
+    </div>
+
+    <div class="watermark">
+        Educational Testing System &copy; 2024 - Authorized Personnel Only<br>
+        <span style="font-size: 9px;">Best viewed in Internet Explorer 6.0 or Netscape Navigator</span>
+    </div>
+
+    <script>
+        function submitTest() {
+            const form = document.getElementById('math-test-form');
+            const result = document.getElementById('test-result');
+            const scoreDisplay = document.getElementById('score-display');
+            
+            const correctAnswers = {
+                q1: 'b',
+                q2: 'b',
+                q3: 'b',
+                q4: 'b',
+                q5: 'b'
+            };
+            
+            let score = 0;
+            let totalQuestions = 5;
+            
+            for (let question in correctAnswers) {
+                const selectedAnswer = document.querySelector(`input[name="${question}"]:checked`);
+                if (selectedAnswer && selectedAnswer.value === correctAnswers[question]) {
+                    score++;
+                }
+            }
+            
+            const percentage = Math.round((score / totalQuestions) * 100);
+            scoreDisplay.innerHTML = `Assessment Score: ${score}/${totalQuestions} (${percentage}%)<br>` +
+                                   `Status: ${percentage >= 60 ? 'PASSED' : 'REQUIRES RETESTING'}`;
+            
+            form.style.display = 'none';
+            result.style.display = 'block';
+        }
+        
+        function resetTest() {
+            const form = document.getElementById('math-test-form');
+            const inputs = form.querySelectorAll('input[type="radio"]');
+            inputs.forEach(input => input.checked = false);
+            updateProgress();
+        }
+        
+        function updateProgress() {
+            const inputs = document.querySelectorAll('input[type="radio"]:checked');
+            const totalQuestions = 5;
+            const progress = (inputs.length / totalQuestions) * 100;
+            document.getElementById('progress-fill').style.width = `${progress}%`;
+        }
+        
+        let timeLeft = 600;
+        
+        function updateTimer() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            
+            if (timeLeft > 0) {
+                timeLeft--;
+                setTimeout(updateTimer, 1000);
+            } else {
+                alert('Time expired. Submitting assessment automatically.');
+                submitTest();
+            }
+        }
+
+        function redirectToLocked() {
+            sessionStorage.setItem('obsidian_auth', 'true');
+            window.location.href = 'locked.html';
+        }
+    </script>
+</body>
+</html>
