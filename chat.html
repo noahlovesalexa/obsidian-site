@@ -1,0 +1,2747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Obsidian - Chat</title>
+    <link rel="icon" type="image/png" href="obsidian.png">
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* ---- Chat Layout (with optional admin panel) ---- */
+        .chat-page-layout {
+            display: flex;
+            gap: 1rem;
+            max-width: 1280px;
+            margin: 0 auto;
+            align-items: flex-start;
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 180px);
+            min-height: 400px;
+            max-width: 900px;
+            margin: 0 auto;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .chat-header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        }
+
+        .chat-header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .chat-header-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .chat-online-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: var(--radius-full);
+            background: rgba(var(--primary-rgb), 0.1);
+            color: var(--primary);
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .chat-online-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse-dot 2s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .chat-header-right {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chat-name-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: var(--radius-full);
+            background: rgba(var(--primary-rgb), 0.08);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .chat-name-btn:hover {
+            background: rgba(var(--primary-rgb), 0.15);
+            color: var(--text-primary);
+            border-color: var(--border-strong);
+        }
+
+        .chat-clear-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: var(--radius-full);
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .chat-clear-btn:hover {
+            background: rgba(239, 68, 68, 0.15);
+        }
+
+        /* Admin toggle button in header */
+        .chat-admin-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: var(--radius-full);
+            background: rgba(249, 115, 22, 0.1);
+            border: 1px solid rgba(249, 115, 22, 0.2);
+            color: #f97316;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .chat-admin-toggle:hover {
+            background: rgba(249, 115, 22, 0.2);
+            border-color: rgba(249, 115, 22, 0.35);
+        }
+
+        .chat-admin-toggle.active {
+            background: rgba(249, 115, 22, 0.25);
+            border-color: #f97316;
+            box-shadow: 0 0 12px rgba(249, 115, 22, 0.15);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            background: var(--bg-base);
+            border-left: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            scroll-behavior: smooth;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: var(--border-strong);
+        }
+
+        .chat-msg {
+            display: flex;
+            gap: 0.6rem;
+            padding: 0.5rem 0.6rem;
+            border-radius: var(--radius-md);
+            transition: background var(--transition-fast);
+            max-width: 100%;
+            position: relative;
+        }
+
+        .chat-msg:hover {
+            background: rgba(var(--primary-rgb), 0.04);
+        }
+
+        .chat-msg-avatar {
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            border-radius: var(--radius-sm);
+            background: rgba(var(--primary-rgb), 0.15);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .chat-msg-self .chat-msg-avatar {
+            background: rgba(var(--primary-rgb), 0.25);
+        }
+
+        .chat-msg-body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .chat-msg-header {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+            margin-bottom: 0.15rem;
+        }
+
+        .chat-msg-name {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .chat-msg-self .chat-msg-name {
+            color: var(--accent);
+        }
+
+        .chat-msg-time {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+        }
+
+        .chat-msg-text {
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            line-height: 1.45;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .chat-msg-system {
+            text-align: center;
+            padding: 0.4rem;
+        }
+
+        .chat-msg-system .chat-msg-text {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .chat-empty {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 2rem;
+        }
+
+        .chat-empty-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: var(--radius-lg);
+            background: rgba(var(--primary-rgb), 0.1);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-empty-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .chat-empty-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-align: center;
+            max-width: 320px;
+        }
+
+        .chat-input-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 0.6rem 0.9rem;
+            border-radius: var(--radius-full);
+            border: 1px solid var(--border-color);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            font-family: var(--font-sans);
+            outline: none;
+            transition: all var(--transition-fast);
+        }
+
+        .chat-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.15);
+        }
+
+        .chat-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .chat-send-btn {
+            width: 38px;
+            height: 38px;
+            min-width: 38px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+        }
+
+        .chat-send-btn:hover {
+            background: var(--primary-hover);
+            transform: scale(1.05);
+        }
+
+        .chat-send-btn:active {
+            transform: scale(0.95);
+        }
+
+        .chat-send-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Name edit modal */
+        .chat-name-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-overlay);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--transition-normal);
+        }
+
+        .chat-name-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .chat-name-modal {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            width: 90%;
+            max-width: 360px;
+            box-shadow: var(--shadow-lg);
+            transform: scale(0.9);
+            transition: transform var(--transition-normal);
+        }
+
+        .chat-name-overlay.active .chat-name-modal {
+            transform: scale(1);
+        }
+
+        .chat-name-modal h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 0.5rem;
+        }
+
+        .chat-name-modal p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin: 0 0 1rem;
+        }
+
+        .chat-name-modal input {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            font-family: var(--font-sans);
+            outline: none;
+            margin-bottom: 1rem;
+            box-sizing: border-box;
+        }
+
+        .chat-name-modal input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.15);
+        }
+
+        .chat-name-modal-btns {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+
+        .chat-name-modal-btns button {
+            padding: 0.45rem 1rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            font-size: 0.8rem;
+            font-family: var(--font-sans);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .chat-name-cancel {
+            background: var(--bg-surface);
+            color: var(--text-secondary);
+        }
+
+        .chat-name-cancel:hover {
+            background: var(--bg-elevated);
+        }
+
+        .chat-name-save {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary) !important;
+        }
+
+        .chat-name-save:hover {
+            background: var(--primary-hover);
+        }
+
+        /* ========================================
+           ADMIN SIDE PANEL
+           ======================================== */
+        .admin-chat-panel {
+            width: 300px;
+            min-width: 300px;
+            height: calc(100vh - 180px);
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+        }
+
+        .admin-chat-panel.open {
+            display: flex;
+        }
+
+        .admin-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background: rgba(249, 115, 22, 0.08);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .admin-panel-header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .admin-panel-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #f97316;
+        }
+
+        .admin-panel-badge {
+            font-size: 0.6rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: var(--radius-full);
+            background: rgba(249, 115, 22, 0.15);
+            color: #f97316;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .admin-panel-close {
+            width: 28px;
+            height: 28px;
+            border-radius: var(--radius-sm);
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+        }
+
+        .admin-panel-close:hover {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        .admin-panel-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .admin-panel-body::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .admin-panel-body::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 2px;
+        }
+
+        .admin-panel-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .admin-panel-section-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            padding: 0 0.25rem;
+        }
+
+        .admin-action-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.55rem 0.75rem;
+            border-radius: var(--radius-sm);
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+            font-family: var(--font-sans);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            width: 100%;
+            text-align: left;
+        }
+
+        .admin-action-btn:hover {
+            background: rgba(var(--primary-rgb), 0.08);
+            border-color: var(--border-strong);
+            color: var(--text-primary);
+        }
+
+        .admin-action-btn svg {
+            flex-shrink: 0;
+        }
+
+        .admin-action-btn.btn-warn {
+            color: var(--warning);
+        }
+        .admin-action-btn.btn-warn:hover {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .admin-action-btn.btn-danger {
+            color: var(--danger);
+        }
+        .admin-action-btn.btn-danger:hover {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .admin-action-btn.btn-announce {
+            color: var(--info);
+        }
+        .admin-action-btn.btn-announce:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .admin-action-btn.btn-pin {
+            color: var(--success);
+        }
+        .admin-action-btn.btn-pin:hover {
+            background: rgba(34, 197, 94, 0.1);
+            border-color: rgba(34, 197, 94, 0.3);
+        }
+
+        /* Admin input in panel */
+        .admin-panel-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .admin-panel-input-group label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .admin-panel-input {
+            padding: 0.5rem 0.7rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-size: 0.8rem;
+            font-family: var(--font-sans);
+            outline: none;
+            transition: all var(--transition-fast);
+        }
+
+        .admin-panel-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.1);
+        }
+
+        .admin-panel-textarea {
+            padding: 0.5rem 0.7rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-size: 0.8rem;
+            font-family: var(--font-sans);
+            outline: none;
+            resize: vertical;
+            min-height: 60px;
+            transition: all var(--transition-fast);
+        }
+
+        .admin-panel-textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.1);
+        }
+
+        .admin-panel-divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 0.25rem 0;
+        }
+
+        /* ========================================
+           PINNED MESSAGE BANNER
+           ======================================== */
+        .chat-pinned-banner {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            background: rgba(34, 197, 94, 0.06);
+            border-left: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            border-bottom: 1px solid rgba(34, 197, 94, 0.15);
+            cursor: pointer;
+            transition: background var(--transition-fast);
+        }
+
+        .chat-pinned-banner.visible {
+            display: flex;
+        }
+
+        .chat-pinned-banner:hover {
+            background: rgba(34, 197, 94, 0.1);
+        }
+
+        .chat-pinned-icon {
+            color: var(--success);
+            flex-shrink: 0;
+        }
+
+        .chat-pinned-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .chat-pinned-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--success);
+        }
+
+        .chat-pinned-text {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .chat-pinned-close {
+            width: 22px;
+            height: 22px;
+            border-radius: var(--radius-sm);
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+            flex-shrink: 0;
+        }
+
+        .chat-pinned-close:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        /* ========================================
+           ANNOUNCEMENT BANNER
+           ======================================== */
+        .chat-announce-banner {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 0.75rem;
+            background: rgba(59, 130, 246, 0.08);
+            border-left: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.15);
+            animation: announce-pulse 3s ease-in-out infinite;
+        }
+
+        .chat-announce-banner.visible {
+            display: flex;
+        }
+
+        @keyframes announce-pulse {
+            0%, 100% { background: rgba(59, 130, 246, 0.08); }
+            50% { background: rgba(59, 130, 246, 0.12); }
+        }
+
+        .chat-announce-icon {
+            color: var(--info);
+            flex-shrink: 0;
+        }
+
+        .chat-announce-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .chat-announce-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--info);
+        }
+
+        .chat-announce-text {
+            font-size: 0.8rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .chat-announce-close {
+            width: 22px;
+            height: 22px;
+            border-radius: var(--radius-sm);
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+            flex-shrink: 0;
+        }
+
+        .chat-announce-close:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        /* ========================================
+           MESSAGE ADMIN ACTIONS (hover overlay)
+           ======================================== */
+        .chat-msg-admin-actions {
+            display: none;
+            position: absolute;
+            top: 0.25rem;
+            right: 0.25rem;
+            gap: 0.2rem;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 0.2rem;
+            box-shadow: var(--shadow-sm);
+            z-index: 10;
+        }
+
+        .chat-msg:hover .chat-msg-admin-actions {
+            display: flex;
+        }
+
+        .msg-action-btn {
+            width: 26px;
+            height: 26px;
+            border-radius: 4px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+        }
+
+        .msg-action-btn:hover {
+            background: rgba(var(--primary-rgb), 0.1);
+            color: var(--text-primary);
+        }
+
+        .msg-action-btn.action-pin:hover {
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--success);
+        }
+
+        .msg-action-btn.action-warn:hover {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+        }
+
+        .msg-action-btn.action-delete:hover {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+
+        .msg-action-btn.action-hide:hover {
+            background: rgba(107, 114, 128, 0.15);
+            color: var(--text-secondary);
+        }
+
+        /* ========================================
+           SPECIAL MESSAGE STYLES
+           ======================================== */
+
+        /* Admin announcement message */
+        .chat-msg-announce {
+            background: rgba(59, 130, 246, 0.06);
+            border: 1px solid rgba(59, 130, 246, 0.15);
+            border-radius: var(--radius-md);
+            padding: 0.6rem 0.75rem;
+        }
+
+        .chat-msg-announce .chat-msg-text {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .chat-msg-announce-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.1rem 0.4rem;
+            border-radius: var(--radius-full);
+            background: rgba(59, 130, 246, 0.12);
+            color: var(--info);
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-left: 0.35rem;
+        }
+
+        /* Admin warning message */
+        .chat-msg-warning {
+            background: rgba(245, 158, 11, 0.06);
+            border: 1px solid rgba(245, 158, 11, 0.15);
+            border-radius: var(--radius-md);
+            padding: 0.6rem 0.75rem;
+        }
+
+        .chat-msg-warning .chat-msg-text {
+            color: var(--warning);
+        }
+
+        .chat-msg-warning-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.1rem 0.4rem;
+            border-radius: var(--radius-full);
+            background: rgba(245, 158, 11, 0.12);
+            color: var(--warning);
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-left: 0.35rem;
+        }
+
+        /* Pinned message style */
+        .chat-msg-pinned {
+            background: rgba(34, 197, 94, 0.04);
+            border-left: 3px solid var(--success);
+        }
+
+        .chat-msg-pinned-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.1rem 0.4rem;
+            border-radius: var(--radius-full);
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--success);
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-left: 0.35rem;
+        }
+
+        /* Hidden message style */
+        .chat-msg-hidden {
+            opacity: 0.35;
+            background: rgba(107, 114, 128, 0.05);
+            border: 1px dashed rgba(107, 114, 128, 0.2);
+        }
+
+        .chat-msg-hidden .chat-msg-text {
+            text-decoration: line-through;
+            font-style: italic;
+        }
+
+        .chat-msg-hidden-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            font-style: italic;
+            margin-top: 0.15rem;
+        }
+
+        /* Deleted message style */
+        .chat-msg-deleted {
+            text-align: center;
+            padding: 0.35rem 0.6rem;
+        }
+
+        .chat-msg-deleted .chat-msg-text {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* Admin name badge */
+        .chat-msg-admin-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.08rem 0.35rem;
+            border-radius: var(--radius-full);
+            background: rgba(249, 115, 22, 0.12);
+            color: #f97316;
+            font-size: 0.55rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-left: 0.3rem;
+            vertical-align: middle;
+        }
+
+        /* Admin moderation system message */
+        .chat-msg-mod-system {
+            text-align: center;
+            padding: 0.3rem 0.6rem;
+        }
+
+        .chat-msg-mod-system .chat-msg-text {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-style: italic;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        /* ========================================
+           ADMIN MODAL (for announce/warn input)
+           ======================================== */
+        .admin-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-overlay);
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--transition-normal);
+        }
+
+        .admin-modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .admin-modal {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            width: 90%;
+            max-width: 420px;
+            box-shadow: var(--shadow-lg);
+            transform: scale(0.9);
+            transition: transform var(--transition-normal);
+        }
+
+        .admin-modal-overlay.active .admin-modal {
+            transform: scale(1);
+        }
+
+        .admin-modal h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 0.35rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .admin-modal p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin: 0 0 1rem;
+        }
+
+        .admin-modal input,
+        .admin-modal textarea {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            font-family: var(--font-sans);
+            outline: none;
+            margin-bottom: 0.75rem;
+            box-sizing: border-box;
+        }
+
+        .admin-modal textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .admin-modal input:focus,
+        .admin-modal textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.15);
+        }
+
+        .admin-modal-btns {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+
+        .admin-modal-btns button {
+            padding: 0.45rem 1rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            font-size: 0.8rem;
+            font-family: var(--font-sans);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .admin-modal-cancel {
+            background: var(--bg-surface);
+            color: var(--text-secondary);
+        }
+
+        .admin-modal-cancel:hover {
+            background: var(--bg-elevated);
+        }
+
+        .admin-modal-confirm {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary) !important;
+        }
+
+        .admin-modal-confirm:hover {
+            background: var(--primary-hover);
+        }
+
+        .admin-modal-confirm.btn-warn-confirm {
+            background: var(--warning);
+            border-color: var(--warning) !important;
+        }
+
+        .admin-modal-confirm.btn-announce-confirm {
+            background: var(--info);
+            border-color: var(--info) !important;
+        }
+
+        /* ========================================
+           RESPONSIVE
+           ======================================== */
+        @media (max-width: 1024px) {
+            .admin-chat-panel {
+                width: 260px;
+                min-width: 260px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                height: calc(100vh - 150px);
+            }
+
+            .chat-header-bar {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+
+            .chat-msg-avatar {
+                width: 28px;
+                height: 28px;
+                min-width: 28px;
+                font-size: 0.7rem;
+            }
+
+            .chat-page-layout {
+                flex-direction: column;
+            }
+
+            .admin-chat-panel {
+                width: 100%;
+                min-width: unset;
+                height: auto;
+                max-height: 300px;
+                order: -1;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .chat-container {
+                height: calc(100vh - 130px);
+            }
+
+            .chat-header-right {
+                display: none;
+            }
+
+            .chat-input-bar {
+                padding: 0.5rem;
+            }
+        }
+
+        /* ── CHAT REDESIGN OVERRIDES ── */
+
+        /* Tighter page padding */
+        .main-content { padding-top: 0 !important; }
+
+        .chat-page-layout {
+            padding: 1.25rem 1.5rem 1.5rem;
+            gap: 1rem;
+            max-width: 960px;
+        }
+
+        /* Container */
+        .chat-container {
+            height: calc(100vh - 140px);
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+        }
+
+        /* Header */
+        .chat-header-bar {
+            border-radius: 0;
+            border: none;
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.65rem 1rem;
+            background: var(--bg-surface);
+        }
+
+        .chat-header-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .chat-online-badge {
+            font-size: 0.72rem;
+            padding: 0.18rem 0.55rem;
+            border-radius: 999px;
+        }
+
+        /* Header buttons */
+        .chat-name-btn,
+        .chat-clear-btn,
+        .chat-admin-toggle {
+            padding: 0.28rem 0.65rem;
+            font-size: 0.72rem;
+            border-radius: 999px;
+        }
+
+        /* Messages */
+        .chat-messages {
+            background: var(--bg-base);
+            border: none;
+            padding: 0.75rem 1rem;
+            gap: 0.25rem;
+        }
+
+        .chat-msg {
+            padding: 0.4rem 0.5rem;
+            border-radius: 10px;
+        }
+
+        .chat-msg-avatar {
+            width: 30px;
+            height: 30px;
+            min-width: 30px;
+            border-radius: 8px;
+            font-size: 0.72rem;
+        }
+
+        .chat-msg-name {
+            font-size: 0.78rem;
+        }
+
+        .chat-msg-text {
+            font-size: 0.83rem;
+            line-height: 1.4;
+        }
+
+        .chat-msg-time {
+            font-size: 0.62rem;
+        }
+
+        /* Input bar */
+        .chat-input-bar {
+            border: none;
+            border-top: 1px solid var(--border-color);
+            border-radius: 0;
+            padding: 0.65rem 0.85rem;
+            background: var(--bg-surface);
+            gap: 0.5rem;
+        }
+
+        .chat-input {
+            border-radius: 999px;
+            padding: 0.55rem 1rem;
+            font-size: 0.83rem;
+            background: var(--bg-elevated);
+        }
+
+        .chat-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.12);
+        }
+
+        .chat-send-btn {
+            width: 34px;
+            height: 34px;
+            min-width: 34px;
+            border-radius: 999px;
+            flex-shrink: 0;
+        }
+
+        /* Name modal */
+        .chat-name-modal {
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .chat-name-modal h3 {
+            font-size: 0.95rem;
+            letter-spacing: -0.01em;
+        }
+
+        .chat-name-modal input {
+            border-radius: 8px;
+            padding: 0.6rem 0.85rem;
+        }
+
+        .chat-name-modal-btns button {
+            border-radius: 8px;
+            padding: 0.45rem 1rem;
+            font-size: 0.8rem;
+        }
+
+        /* Empty state */
+        .chat-empty-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+        }
+
+        .chat-empty-title { font-size: 1rem; }
+        .chat-empty-desc  { font-size: 0.8rem; }
+
+        /* Admin panel */
+        .admin-chat-panel {
+            border-radius: 14px;
+            height: calc(100vh - 140px);
+        }
+
+        /* Attachment preview */
+        .chat-attachment-preview {
+            border-radius: 10px;
+            margin: 0.25rem 0 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .chat-page-layout { padding: 0.75rem; }
+            .chat-container { height: calc(100vh - 120px); }
+        }
+    </style>
+</head>
+<body>
+    <script src="theme-init.js"></script>
+    <script src="auth-guard.js"></script>
+
+    <!-- Name Edit Overlay -->
+    <div id="chat-name-overlay" class="chat-name-overlay" onclick="if(event.target===this)closeChatNameModal()">
+        <div class="chat-name-modal">
+            <h3>Set Display Name</h3>
+            <p>Choose a name that other users will see in the chat.</p>
+            <input type="text" id="chat-name-input" placeholder="Enter your name..." maxlength="24" autocomplete="off">
+            <div id="chat-name-error" style="display:none; color:var(--danger); font-size:0.78rem; margin:-0.5rem 0 0.75rem; padding:0.4rem 0.6rem; background:rgba(239,68,68,0.08); border-radius:var(--radius-sm);"></div>
+            <div class="chat-name-modal-btns">
+                <button class="chat-name-cancel" onclick="closeChatNameModal()">Cancel</button>
+                <button class="chat-name-save" id="chat-name-save-btn" onclick="saveChatName()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Announce Modal -->
+    <div id="admin-announce-overlay" class="admin-modal-overlay" onclick="if(event.target===this)closeAdminModal('announce')">
+        <div class="admin-modal">
+            <h3>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--info)" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                Send Announcement
+            </h3>
+            <p>This announcement will be visible to all users in the chat as a highlighted banner and message.</p>
+            <textarea id="admin-announce-text" placeholder="Type your announcement..." maxlength="500"></textarea>
+            <div class="admin-modal-btns">
+                <button class="admin-modal-cancel" onclick="closeAdminModal('announce')">Cancel</button>
+                <button class="admin-modal-confirm btn-announce-confirm" onclick="confirmAnnounce()">Announce</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Warn Modal -->
+    <div id="admin-warn-overlay" class="admin-modal-overlay" onclick="if(event.target===this)closeAdminModal('warn')">
+        <div class="admin-modal">
+            <h3>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                Warn User
+            </h3>
+            <p>Send a public warning to a user. This will be visible to everyone in the chat.</p>
+            <input type="text" id="admin-warn-user" placeholder="Username to warn..." maxlength="24" autocomplete="off">
+            <textarea id="admin-warn-reason" placeholder="Reason for warning..." maxlength="300"></textarea>
+            <div class="admin-modal-btns">
+                <button class="admin-modal-cancel" onclick="closeAdminModal('warn')">Cancel</button>
+                <button class="admin-modal-confirm btn-warn-confirm" onclick="confirmWarn()">Send Warning</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-wrapper">
+        <header class="header animate-fade-in">
+            <div class="browser-bar">
+                <div class="left-section">
+                    <img src="obsidian.png" alt="Obsidian Logo" class="logo">
+                    <a href="#" class="app-name" onclick="event.preventDefault(); sessionStorage.setItem('obsidian_show_welcome','true'); window.location.href='main.html';"><h1>Obsidian</h1></a>
+                </div>
+                <nav class="tab-navigation">
+                    <button class="tab-btn" data-tab="games" onclick="window.location.href='main.html'">Games</button>
+                    <button class="tab-btn" data-tab="media" onclick="window.location.href='media.html'">Media</button>
+                    <button class="tab-btn active" data-tab="chat">Chat</button>
+                    <button class="tab-btn" data-tab="ai" onclick="window.location.href='ai.html'">AI</button>
+                    <button class="tab-btn" data-tab="proxy" onclick="window.location.href='proxy.html'">Proxy</button>
+                    <button class="tab-btn" data-tab="settings" onclick="window.location.href='settings.html'">Settings</button>
+                    <button class="tab-btn" data-tab="credits" onclick="window.location.href='credits.html'">Credits</button>
+                </nav>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="chat-page-layout">
+                <div class="chat-container animate-slide-up">
+                    <!-- Chat Header -->
+                    <div class="chat-header-bar">
+                        <div class="chat-header-left">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                            <span class="chat-header-title">Global Chat</span>
+                            <span class="chat-online-badge">
+                                <span class="chat-online-dot"></span>
+                                <span data-obsidian-online>0</span> online
+                            </span>
+                        </div>
+                        <div class="chat-header-right">
+                            <button class="chat-name-btn" onclick="openChatNameModal()" title="Change display name">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                <span id="display-name-label">Set Name</span>
+                            </button>
+                            <button class="chat-clear-btn" onclick="clearChatHistory()" title="Clear chat history">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                Clear
+                            </button>
+                            <!-- Admin Panel Toggle (shown only for admins) -->
+                            <button id="admin-panel-toggle" class="chat-admin-toggle" onclick="toggleAdminPanel()" title="Toggle Admin Panel" style="display:none;">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                Admin
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Announcement Banner -->
+                    <div id="chat-announce-banner" class="chat-announce-banner">
+                        <div class="chat-announce-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        </div>
+                        <div class="chat-announce-content">
+                            <div class="chat-announce-label">Announcement</div>
+                            <div id="chat-announce-text" class="chat-announce-text"></div>
+                        </div>
+                        <button class="chat-announce-close" onclick="dismissAnnounceBanner()" title="Dismiss">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>
+
+                    <!-- Pinned Message Banner -->
+                    <div id="chat-pinned-banner" class="chat-pinned-banner" onclick="scrollToPinnedMessage()">
+                        <div class="chat-pinned-icon">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        </div>
+                        <div class="chat-pinned-content">
+                            <div class="chat-pinned-label">Pinned Message</div>
+                            <div id="chat-pinned-text" class="chat-pinned-text"></div>
+                        </div>
+                        <button id="chat-pinned-unpin" class="chat-pinned-close" onclick="event.stopPropagation(); unpinMessage()" title="Unpin" style="display:none;">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>
+
+                    <!-- Messages Area -->
+                    <div id="chat-messages" class="chat-messages">
+                        <div class="chat-empty" id="chat-empty">
+                            <div class="chat-empty-icon">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                            </div>
+                            <div class="chat-empty-title">No messages yet</div>
+                            <div class="chat-empty-desc">Be the first to say something! All users on Obsidian can see messages here.</div>
+                        </div>
+                    </div>
+
+                    <!-- Input Area -->
+                    <div class="chat-input-bar">
+                        <input type="text" id="chat-input" class="chat-input" placeholder="Type a message..." maxlength="500" autocomplete="off">
+                        <button id="chat-send-btn" class="chat-send-btn" onclick="sendChatMessage()" title="Send message">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Admin Side Panel -->
+                <div id="admin-chat-panel" class="admin-chat-panel">
+                    <div class="admin-panel-header">
+                        <div class="admin-panel-header-left">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            <span class="admin-panel-title">Moderation</span>
+                            <span class="admin-panel-badge">Admin</span>
+                        </div>
+                        <button class="admin-panel-close" onclick="toggleAdminPanel()" title="Close panel">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>
+                    <div class="admin-panel-body">
+                        <!-- Quick Actions -->
+                        <div class="admin-panel-section">
+                            <div class="admin-panel-section-title">Quick Actions</div>
+
+                            <button class="admin-action-btn btn-announce" onclick="openAdminModal('announce')">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                Send Announcement
+                            </button>
+
+                            <button class="admin-action-btn btn-warn" onclick="openAdminModal('warn')">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                Warn User
+                            </button>
+
+                            <button class="admin-action-btn btn-danger" onclick="adminClearAllMessages()">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                Clear All Messages
+                            </button>
+                        </div>
+
+                        <div class="admin-panel-divider"></div>
+
+                        <!-- Message Actions Info -->
+                        <div class="admin-panel-section">
+                            <div class="admin-panel-section-title">Message Actions</div>
+                            <div style="font-size: 0.72rem; color: var(--text-muted); line-height: 1.5; padding: 0.25rem;">
+                                Hover over any message to see moderation buttons:
+                                <div style="margin-top: 0.4rem; display: flex; flex-direction: column; gap: 0.3rem;">
+                                    <span style="color: var(--success);">
+                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                                        Pin - Pin message for everyone
+                                    </span>
+                                    <span style="color: var(--warning);">
+                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+                                        Warn - Warn the message author
+                                    </span>
+                                    <span style="color: var(--text-secondary);">
+                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                        Hide - Hide message from view
+                                    </span>
+                                    <span style="color: var(--danger);">
+                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                        Delete - Remove message
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="admin-panel-divider"></div>
+
+                        <!-- Pinned Info -->
+                        <div class="admin-panel-section">
+                            <div class="admin-panel-section-title">Pinned Message</div>
+                            <div id="admin-pinned-info" style="font-size: 0.75rem; color: var(--text-muted); padding: 0.25rem;">
+                                No message pinned
+                            </div>
+                            <button id="admin-unpin-btn" class="admin-action-btn btn-danger" onclick="unpinMessage()" style="display:none;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                Unpin Message
+                            </button>
+                        </div>
+
+                        <div class="admin-panel-divider"></div>
+
+                        <!-- Chat Stats -->
+                        <div class="admin-panel-section">
+                            <div class="admin-panel-section-title">Chat Stats</div>
+                            <div style="display: flex; flex-direction: column; gap: 0.35rem; padding: 0.25rem;">
+                                <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
+                                    <span style="color: var(--text-muted);">Total Messages</span>
+                                    <span id="admin-stat-total" style="color: var(--text-primary); font-weight: 600;">0</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
+                                    <span style="color: var(--text-muted);">Hidden Messages</span>
+                                    <span id="admin-stat-hidden" style="color: var(--text-primary); font-weight: 600;">0</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
+                                    <span style="color: var(--text-muted);">Online Users</span>
+                                    <span id="admin-stat-online" style="color: var(--text-primary); font-weight: 600;" data-obsidian-online>0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="watermark">
+            <p>made by anonymous</p>
+        </footer>
+    </div>
+
+    <script src="theme.js"></script>
+    <script>
+        // ============================================
+        // OBSIDIAN CHAT — powered by backend API
+        // with Admin Moderation System
+        // ============================================
+
+        var CHAT_API = 'https://lettuce-cola-resource.ngrok-free.dev';
+        var CHAT_WS  = 'wss://lettuce-cola-resource.ngrok-free.dev/ws/chat';
+        var CHAT_NAME_KEY = 'obsidian_chat_name';
+        var MAX_MESSAGES = 200;
+
+        var chatMessages = [];
+        var myUserId = null;
+        var myDisplayName = '';
+        var chatSocket = null;
+        var reconnectTimer = null;
+        var pingInterval = null;
+
+        // Admin state
+        var isAdmin = false;
+        var adminPanelOpen = false;
+        var pinnedMessage = null;       // { name, text, timestamp, msgIndex }
+        var hiddenMessages = {};        // { msgKey: true }  — keyed by name+timestamp
+        var currentAnnouncement = null; // { text, timestamp }
+
+        // ---- Initialization ----
+        function initChat() {
+            myUserId = (typeof Obsidian !== 'undefined' && Obsidian.getUserId) ? Obsidian.getUserId() : getLocalUserId();
+            myDisplayName = localStorage.getItem(CHAT_NAME_KEY) || '';
+
+            // Auto-assign a guest name so users can chat immediately
+            if (!myDisplayName) {
+                myDisplayName = 'Guest' + Math.floor(1000 + Math.random() * 9000);
+                localStorage.setItem(CHAT_NAME_KEY, myDisplayName);
+            }
+            updateNameLabel();
+
+            // Claim the name on the backend (registers it so others can't take it)
+            fetch(CHAT_API + '/api/claim-name', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': '1' },
+                body: JSON.stringify({ userId: myUserId, name: myDisplayName })
+            }).then(function(r) { return r.json(); }).then(function(data) {
+                // If name was taken by someone else, append a number to make it unique
+                if (!data.ok && data.error && data.error.includes('taken')) {
+                    myDisplayName = myDisplayName + Math.floor(10 + Math.random() * 90);
+                    localStorage.setItem(CHAT_NAME_KEY, myDisplayName);
+                    updateNameLabel();
+                    // Claim the new unique name
+                    fetch(CHAT_API + '/api/claim-name', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': '1' },
+                        body: JSON.stringify({ userId: myUserId, name: myDisplayName })
+                    }).catch(function() {});
+                }
+            }).catch(function() {});
+
+            // Check admin status — only show admin controls if user has accessed the admin panel
+            isAdmin = !!sessionStorage.getItem('obsidian_admin') && !!sessionStorage.getItem('obsidian_admin_accessed');
+            if (isAdmin) {
+                document.getElementById('admin-panel-toggle').style.display = '';
+                document.getElementById('chat-pinned-unpin').style.display = '';
+            }
+
+            // Load persisted admin data
+            loadAdminData();
+
+            connectWebSocket();
+            setupInputHandlers();
+
+            if (typeof Obsidian !== 'undefined' && Obsidian.applyTabCloak) {
+                Obsidian.applyTabCloak();
+            }
+        }
+
+        function getLocalUserId() {
+            var id = localStorage.getItem('obsidian_user_id');
+            if (!id) {
+                id = 'user_' + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
+                localStorage.setItem('obsidian_user_id', id);
+            }
+            return id;
+        }
+
+        // ---- Admin Data Persistence ----
+        function loadAdminData() {
+            try {
+                var data = JSON.parse(localStorage.getItem('obsidian_chat_admin') || '{}');
+                if (data.pinned) {
+                    pinnedMessage = data.pinned;
+                    showPinnedBanner(pinnedMessage.name, pinnedMessage.text);
+                }
+                if (data.hidden) {
+                    hiddenMessages = data.hidden;
+                }
+                if (data.announcement) {
+                    currentAnnouncement = data.announcement;
+                    showAnnounceBanner(currentAnnouncement.text);
+                }
+            } catch(e) {}
+        }
+
+        function saveAdminData() {
+            try {
+                localStorage.setItem('obsidian_chat_admin', JSON.stringify({
+                    pinned: pinnedMessage,
+                    hidden: hiddenMessages,
+                    announcement: currentAnnouncement
+                }));
+            } catch(e) {}
+        }
+
+        function getMsgKey(msg) {
+            return (msg.name || 'anon') + '_' + (msg.timestamp || 0);
+        }
+
+        // ---- Display Name ----
+        function updateNameLabel() {
+            var label = document.getElementById('display-name-label');
+            if (myDisplayName) {
+                label.textContent = myDisplayName;
+            } else {
+                label.textContent = 'Set Name';
+            }
+        }
+
+        function openChatNameModal() {
+            var overlay = document.getElementById('chat-name-overlay');
+            var input = document.getElementById('chat-name-input');
+            input.value = myDisplayName;
+            overlay.classList.add('active');
+            setTimeout(function() { input.focus(); }, 200);
+        }
+
+        function closeChatNameModal() {
+            document.getElementById('chat-name-overlay').classList.remove('active');
+        }
+
+        function saveChatName() {
+            var input = document.getElementById('chat-name-input');
+            var errorEl = document.getElementById('chat-name-error');
+            var saveBtn = document.getElementById('chat-name-save-btn');
+            var name = input.value.trim();
+            if (!name) { input.focus(); return; }
+            if (name.length > 24) {
+                errorEl.textContent = 'Name must be 24 characters or less.';
+                errorEl.style.display = 'block';
+                return;
+            }
+            errorEl.style.display = 'none';
+            if (saveBtn) { saveBtn.textContent = 'Checking...'; saveBtn.disabled = true; }
+
+            fetch(CHAT_API + '/api/claim-name', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': '1' },
+                body: JSON.stringify({ userId: myUserId, name: name })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (saveBtn) { saveBtn.textContent = 'Save'; saveBtn.disabled = false; }
+                if (data.ok) {
+                    myDisplayName = name;
+                    localStorage.setItem(CHAT_NAME_KEY, name);
+                    updateNameLabel();
+                    closeChatNameModal();
+                    if (typeof Obsidian !== 'undefined' && Obsidian.showToast) {
+                        Obsidian.showToast('Display name updated!', 'success');
+                    }
+                } else {
+                    errorEl.textContent = data.error || 'That name is already taken.';
+                    errorEl.style.display = 'block';
+                    input.focus();
+                }
+            })
+            .catch(function() {
+                if (saveBtn) { saveBtn.textContent = 'Save'; saveBtn.disabled = false; }
+                errorEl.textContent = 'Could not verify name — try again.';
+                errorEl.style.display = 'block';
+                input.focus();
+            });
+        }
+
+        // ---- Clear local view ----
+        function clearChatHistory() {
+            var doIt = function() {
+                chatMessages = [];
+                renderMessages();
+            };
+            if (typeof Obsidian !== 'undefined' && Obsidian.showConfirmModal) {
+                Obsidian.showConfirmModal('Clear your local chat view?', doIt);
+            } else {
+                if (confirm('Clear your local chat view?')) doIt();
+            }
+        }
+
+        // ---- Admin Panel ----
+        function toggleAdminPanel() {
+            adminPanelOpen = !adminPanelOpen;
+            var panel = document.getElementById('admin-chat-panel');
+            var toggle = document.getElementById('admin-panel-toggle');
+            if (adminPanelOpen) {
+                panel.classList.add('open');
+                toggle.classList.add('active');
+            } else {
+                panel.classList.remove('open');
+                toggle.classList.remove('active');
+            }
+            updateAdminStats();
+        }
+
+        function updateAdminStats() {
+            var totalEl = document.getElementById('admin-stat-total');
+            var hiddenEl = document.getElementById('admin-stat-hidden');
+            if (totalEl) totalEl.textContent = chatMessages.length;
+            if (hiddenEl) hiddenEl.textContent = Object.keys(hiddenMessages).length;
+
+            var pinnedInfo = document.getElementById('admin-pinned-info');
+            var unpinBtn = document.getElementById('admin-unpin-btn');
+            if (pinnedMessage) {
+                pinnedInfo.innerHTML = '<strong style="color:var(--text-primary);">' + escapeHtml(pinnedMessage.name) + ':</strong> ' + escapeHtml(pinnedMessage.text).substring(0, 60) + (pinnedMessage.text.length > 60 ? '...' : '');
+                if (unpinBtn) unpinBtn.style.display = '';
+            } else {
+                pinnedInfo.textContent = 'No message pinned';
+                if (unpinBtn) unpinBtn.style.display = 'none';
+            }
+        }
+
+        // ---- Admin Modals ----
+        function openAdminModal(type) {
+            var overlay = document.getElementById('admin-' + type + '-overlay');
+            if (overlay) {
+                overlay.classList.add('active');
+                var firstInput = overlay.querySelector('input, textarea');
+                if (firstInput) setTimeout(function() { firstInput.focus(); }, 200);
+            }
+        }
+
+        function closeAdminModal(type) {
+            var overlay = document.getElementById('admin-' + type + '-overlay');
+            if (overlay) {
+                overlay.classList.remove('active');
+                // Clear inputs
+                var inputs = overlay.querySelectorAll('input, textarea');
+                for (var i = 0; i < inputs.length; i++) {
+                    inputs[i].value = '';
+                }
+            }
+        }
+
+        // ---- Admin Actions ----
+
+        // Announce
+        function confirmAnnounce() {
+            var textEl = document.getElementById('admin-announce-text');
+            var text = textEl.value.trim();
+            if (!text) { textEl.focus(); return; }
+
+            // Send announcement as a special chat message
+            var adminName = myDisplayName || 'Admin';
+            sendAdminMessage('__OBSIDIAN_ANNOUNCE__' + text, adminName);
+
+            // Show banner locally
+            currentAnnouncement = { text: text, timestamp: Date.now() };
+            showAnnounceBanner(text);
+            saveAdminData();
+
+            closeAdminModal('announce');
+            if (typeof Obsidian !== 'undefined' && Obsidian.showToast) {
+                Obsidian.showToast('Announcement sent!', 'success');
+            }
+        }
+
+        // Warn
+        function confirmWarn() {
+            var userEl = document.getElementById('admin-warn-user');
+            var reasonEl = document.getElementById('admin-warn-reason');
+            var username = userEl.value.trim();
+            var reason = reasonEl.value.trim();
+            if (!username) { userEl.focus(); return; }
+            if (!reason) { reasonEl.focus(); return; }
+
+            var adminName = myDisplayName || 'Admin';
+            sendAdminMessage('__OBSIDIAN_WARN__' + username + '__::__' + reason, adminName);
+
+            closeAdminModal('warn');
+            if (typeof Obsidian !== 'undefined' && Obsidian.showToast) {
+                Obsidian.showToast('Warning sent to ' + username, 'warning');
+            }
+        }
+
+        // Pin (called from message action button)
+        function pinMessage(msgIndex) {
+            var msg = chatMessages[msgIndex];
+            if (!msg) return;
+
+            pinnedMessage = {
+                name: msg.name,
+                text: msg.text,
+                timestamp: msg.timestamp,
+                msgIndex: msgIndex
+            };
+
+            showPinnedBanner(msg.name, msg.text);
+            saveAdminData();
+
+            // Send pin notification as system message
+            var adminName = myDisplayName || 'Admin';
+            sendAdminMessage('__OBSIDIAN_PIN__' + msg.name + '__::__' + msg.text, adminName);
+
+            renderMessages();
+            updateAdminStats();
+
+            if (typeof Obsidian !== 'undefined' && Obsidian.showToast) {
+                Obsidian.showToast('Message pinned!', 'success');
+            }
+        }
+
+        function unpinMessage() {
+            pinnedMessage = null;
+            hidePinnedBanner();
+            saveAdminData();
+
+            // Send unpin notification
+            var adminName = myDisplayName || 'Admin';
+            sendAdminMessage('__OBSIDIAN_UNPIN__', adminName);
+
+            renderMessages();
+            updateAdminStats();
+        }
+
+        // Hide (called from message action button)
+        function hideMessage(msgIndex) {
+            var msg = chatMessages[msgIndex];
+            if (!msg) return;
+
+            var key = getMsgKey(msg);
+            hiddenMessages[key] = true;
+            saveAdminData();
+
+            // Send hide notification
+            var adminName = myDisplayName || 'Admin';
+            sendAdminMessage('__OBSIDIAN_HIDE__' + msg.name + '__::__' + msg.text.substring(0, 50), adminName);
+
+            renderMessages();
+            updateAdminStats();
+
+            if (typeof Obsidian !== 'undefined' && Obsidian.showToast) {
+                Obsidian.showToast('Message hidden', 'info');
+            }
+        }
+
+        // Delete (called from message action button)
+        function deleteMessage(msgIndex) {
+            var msg = chatMessages[msgIndex];
+            if (!msg) return;
+
+            var doDelete = function() {
+                // Replace message content with deleted placeholder
+                chatMessages[msgIndex] = {
+                    type: 'deleted',
+                    userId: msg.userId,
+                    name: msg.name,
+                    text: 'This message was deleted by an admin.',
+                    timestamp: msg.timestamp,
+                    deletedBy: myDisplayName || 'Admin'
+                };
+
+                // Send delete notification
+                var adminName = myDisplayName || 'Admin';
+                sendAdminMessage('__OBSIDIAN_DELETE__' + msg.name, adminName);
+
+                renderMessages();
+                updateAdminStats();
+
+                if (typeof Obsidian !== 'undefined' && Obsidian.showToast) {
+                    Obsidian.showToast('Message deleted', 'info');
+                }
+            };
+
+            if (typeof Obsidian !== 'undefined' && Obsidian.showConfirmModal) {
+                Obsidian.showConfirmModal('Delete this message from ' + (msg.name || 'Anonymous') + '?', doDelete);
+            } else {
+                if (confirm('Delete this message from ' + (msg.name || 'Anonymous') + '?')) doDelete();
+            }
+        }
+
+        // Warn from message (auto-fills username)
+        function warnFromMessage(msgIndex) {
+            var msg = chatMessages[msgIndex];
+            if (!msg) return;
+            document.getElementById('admin-warn-user').value = msg.name || '';
+            openAdminModal('warn');
+        }
+
+        // Admin clear all
+        function adminClearAllMessages() {
+            var doIt = function() {
+                var adminName = myDisplayName || 'Admin';
+
+                // 1. Clear on the backend — wipes history and broadcasts chat_cleared to all WS clients
+                fetch(OBSIDIAN_BACKEND_URL + '/api/admin/chat', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': '1' }
+                }).catch(function() {});
+
+                // 2. Send the visible "cleared all messages" notice via WS so everyone sees who did it
+                sendAdminMessage('__OBSIDIAN_CLEARALL__', adminName);
+
+                // 3. Clear locally for the admin too
+                chatMessages = [];
+                hiddenMessages = {};
+                pinnedMessage = null;
+                currentAnnouncement = null;
+                hidePinnedBanner();
+                dismissAnnounceBanner();
+                saveAdminData();
+                renderMessages();
+                updateAdminStats();
+                if (typeof Obsidian !== 'undefined' && Obsidian.showToast) {
+                    Obsidian.showToast('All messages cleared for everyone', 'success');
+                }
+            };
+            if (typeof Obsidian !== 'undefined' && Obsidian.showConfirmModal) {
+                Obsidian.showConfirmModal('Clear ALL messages for everyone?', doIt);
+            } else {
+                if (confirm('Clear ALL messages for everyone?')) doIt();
+            }
+        }
+
+        // Send admin message through WebSocket
+        function sendAdminMessage(text, adminName) {
+            var msg = {
+                type: 'chat',
+                userId: myUserId,
+                name: adminName,
+                text: text,
+                timestamp: Date.now()
+            };
+
+            chatMessages.push(msg);
+            if (chatMessages.length > MAX_MESSAGES) {
+                chatMessages = chatMessages.slice(-MAX_MESSAGES);
+            }
+
+            if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+                chatSocket.send(JSON.stringify({
+                    type: 'chat_message',
+                    userId: myUserId,
+                    name: adminName,
+                    text: text,
+                    timestamp: msg.timestamp
+                }));
+            } else {
+                fetch(CHAT_API + '/api/messages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': '1' },
+                    body: JSON.stringify({
+                        userId: myUserId,
+                        name: adminName,
+                        text: text,
+                        timestamp: msg.timestamp
+                    })
+                }).catch(function(e) {
+                    console.warn('[Obsidian Chat] Admin message fallback failed:', e);
+                });
+            }
+
+            renderMessages();
+        }
+
+        // ---- Banner Helpers ----
+        function showPinnedBanner(name, text) {
+            var banner = document.getElementById('chat-pinned-banner');
+            var textEl = document.getElementById('chat-pinned-text');
+            textEl.textContent = name + ': ' + text;
+            banner.classList.add('visible');
+        }
+
+        function hidePinnedBanner() {
+            document.getElementById('chat-pinned-banner').classList.remove('visible');
+        }
+
+        function scrollToPinnedMessage() {
+            if (!pinnedMessage) return;
+            // Try to find the pinned message in the DOM
+            var container = document.getElementById('chat-messages');
+            var msgs = container.querySelectorAll('.chat-msg-pinned');
+            if (msgs.length > 0) {
+                msgs[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                msgs[0].style.boxShadow = '0 0 0 2px var(--success)';
+                setTimeout(function() { msgs[0].style.boxShadow = ''; }, 2000);
+            }
+        }
+
+        function showAnnounceBanner(text) {
+            var banner = document.getElementById('chat-announce-banner');
+            var textEl = document.getElementById('chat-announce-text');
+            textEl.textContent = text;
+            banner.classList.add('visible');
+        }
+
+        function dismissAnnounceBanner() {
+            document.getElementById('chat-announce-banner').classList.remove('visible');
+        }
+
+        // ---- Message Rendering ----
+        function renderMessages() {
+            var container = document.getElementById('chat-messages');
+            var empty = document.getElementById('chat-empty');
+
+            if (chatMessages.length === 0) {
+                container.innerHTML = '';
+                container.appendChild(empty);
+                empty.style.display = '';
+                return;
+            }
+
+            empty.style.display = 'none';
+            container.innerHTML = '';
+
+            chatMessages.forEach(function(msg, index) {
+                var el = createMessageElement(msg, index);
+                if (el) container.appendChild(el);
+            });
+
+            container.scrollTop = container.scrollHeight;
+            updateAdminStats();
+        }
+
+        function isAdminSpecialMsg(text) {
+            return text && (
+                text.indexOf('__OBSIDIAN_ANNOUNCE__') === 0 ||
+                text.indexOf('__OBSIDIAN_WARN__') === 0 ||
+                text.indexOf('__OBSIDIAN_PIN__') === 0 ||
+                text.indexOf('__OBSIDIAN_UNPIN__') === 0 ||
+                text.indexOf('__OBSIDIAN_HIDE__') === 0 ||
+                text.indexOf('__OBSIDIAN_DELETE__') === 0 ||
+                text.indexOf('__OBSIDIAN_CLEARALL__') === 0
+            );
+        }
+
+        function parseAdminMessage(msg) {
+            var text = msg.text || '';
+
+            if (text.indexOf('__OBSIDIAN_ANNOUNCE__') === 0) {
+                return { action: 'announce', content: text.substring('__OBSIDIAN_ANNOUNCE__'.length) };
+            }
+            if (text.indexOf('__OBSIDIAN_WARN__') === 0) {
+                var payload = text.substring('__OBSIDIAN_WARN__'.length);
+                var parts = payload.split('__::__');
+                return { action: 'warn', targetUser: parts[0], reason: parts[1] || 'No reason given' };
+            }
+            if (text.indexOf('__OBSIDIAN_PIN__') === 0) {
+                var payload = text.substring('__OBSIDIAN_PIN__'.length);
+                var parts = payload.split('__::__');
+                return { action: 'pin', targetUser: parts[0], content: parts[1] || '' };
+            }
+            if (text.indexOf('__OBSIDIAN_UNPIN__') === 0) {
+                return { action: 'unpin' };
+            }
+            if (text.indexOf('__OBSIDIAN_HIDE__') === 0) {
+                var payload = text.substring('__OBSIDIAN_HIDE__'.length);
+                var parts = payload.split('__::__');
+                return { action: 'hide', targetUser: parts[0], content: parts[1] || '' };
+            }
+            if (text.indexOf('__OBSIDIAN_DELETE__') === 0) {
+                return { action: 'delete', targetUser: text.substring('__OBSIDIAN_DELETE__'.length) };
+            }
+            if (text.indexOf('__OBSIDIAN_CLEARALL__') === 0) {
+                return { action: 'clearall' };
+            }
+            return null;
+        }
+
+        function createMessageElement(msg, index) {
+            // Handle deleted messages
+            if (msg.type === 'deleted') {
+                var delDiv = document.createElement('div');
+                delDiv.className = 'chat-msg chat-msg-deleted';
+                var delText = document.createElement('div');
+                delText.className = 'chat-msg-text';
+                delText.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;opacity:0.5;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> This message was deleted by an admin';
+                delDiv.appendChild(delText);
+                return delDiv;
+            }
+
+            if (msg.type === 'system') {
+                var sysDiv = document.createElement('div');
+                sysDiv.className = 'chat-msg chat-msg-system';
+                var sysText = document.createElement('div');
+                sysText.className = 'chat-msg-text';
+                sysText.textContent = msg.text;
+                sysDiv.appendChild(sysText);
+                return sysDiv;
+            }
+
+            // Handle admin special messages
+            if (isAdminSpecialMsg(msg.text)) {
+                var parsed = parseAdminMessage(msg);
+                if (!parsed) return null;
+
+                return createAdminSystemElement(parsed, msg);
+            }
+
+            // Check if message is hidden
+            var msgKey = getMsgKey(msg);
+            var isHidden = hiddenMessages[msgKey];
+
+            var isSelf = msg.userId === myUserId;
+            var isPinned = pinnedMessage && pinnedMessage.name === msg.name && pinnedMessage.timestamp === msg.timestamp;
+
+            var msgDiv = document.createElement('div');
+            msgDiv.className = 'chat-msg' + (isSelf ? ' chat-msg-self' : '') + (isPinned ? ' chat-msg-pinned' : '') + (isHidden ? ' chat-msg-hidden' : '');
+            msgDiv.setAttribute('data-msg-index', index);
+
+            var avatar = document.createElement('div');
+            avatar.className = 'chat-msg-avatar';
+            var initials = (msg.name || '?').substring(0, 2);
+            avatar.textContent = initials;
+            var hue = hashCode(msg.name || 'anon') % 360;
+            avatar.style.background = 'hsla(' + hue + ', 60%, 40%, 0.25)';
+            avatar.style.color = 'hsl(' + hue + ', 70%, 65%)';
+            msgDiv.appendChild(avatar);
+
+            var body = document.createElement('div');
+            body.className = 'chat-msg-body';
+
+            var header = document.createElement('div');
+            header.className = 'chat-msg-header';
+
+            var nameEl = document.createElement('span');
+            nameEl.className = 'chat-msg-name';
+            nameEl.textContent = msg.name || 'Anonymous';
+            nameEl.style.color = 'hsl(' + hue + ', 70%, 65%)';
+            header.appendChild(nameEl);
+
+            // Show pinned badge
+            if (isPinned) {
+                var pinBadge = document.createElement('span');
+                pinBadge.className = 'chat-msg-pinned-badge';
+                pinBadge.innerHTML = '<svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Pinned';
+                header.appendChild(pinBadge);
+            }
+
+            var timeEl = document.createElement('span');
+            timeEl.className = 'chat-msg-time';
+            timeEl.textContent = formatTime(msg.timestamp);
+            header.appendChild(timeEl);
+
+            body.appendChild(header);
+
+            var textEl = document.createElement('div');
+            textEl.className = 'chat-msg-text';
+            textEl.textContent = isHidden ? '[Message hidden by admin]' : msg.text;
+            body.appendChild(textEl);
+
+            if (isHidden) {
+                var hiddenLabel = document.createElement('div');
+                hiddenLabel.className = 'chat-msg-hidden-label';
+                hiddenLabel.textContent = 'Hidden by admin';
+                body.appendChild(hiddenLabel);
+            }
+
+            msgDiv.appendChild(body);
+
+            // Add admin action buttons on hover (for admin users)
+            if (isAdmin && msg.type !== 'system' && msg.type !== 'deleted') {
+                var actions = document.createElement('div');
+                actions.className = 'chat-msg-admin-actions';
+
+                // Pin button
+                var pinBtn = document.createElement('button');
+                pinBtn.className = 'msg-action-btn action-pin';
+                pinBtn.title = 'Pin message';
+                pinBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>';
+                pinBtn.onclick = (function(idx) { return function(e) { e.stopPropagation(); pinMessage(idx); }; })(index);
+                actions.appendChild(pinBtn);
+
+                // Warn button
+                var warnBtn = document.createElement('button');
+                warnBtn.className = 'msg-action-btn action-warn';
+                warnBtn.title = 'Warn user';
+                warnBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+                warnBtn.onclick = (function(idx) { return function(e) { e.stopPropagation(); warnFromMessage(idx); }; })(index);
+                actions.appendChild(warnBtn);
+
+                // Hide button
+                var hideBtn = document.createElement('button');
+                hideBtn.className = 'msg-action-btn action-hide';
+                hideBtn.title = 'Hide message';
+                hideBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+                hideBtn.onclick = (function(idx) { return function(e) { e.stopPropagation(); hideMessage(idx); }; })(index);
+                actions.appendChild(hideBtn);
+
+                // Delete button
+                var delBtn = document.createElement('button');
+                delBtn.className = 'msg-action-btn action-delete';
+                delBtn.title = 'Delete message';
+                delBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
+                delBtn.onclick = (function(idx) { return function(e) { e.stopPropagation(); deleteMessage(idx); }; })(index);
+                actions.appendChild(delBtn);
+
+                msgDiv.appendChild(actions);
+            }
+
+            return msgDiv;
+        }
+
+        function createAdminSystemElement(parsed, msg) {
+            var wrapper = document.createElement('div');
+
+            if (parsed.action === 'announce') {
+                wrapper.className = 'chat-msg chat-msg-announce';
+
+                var body = document.createElement('div');
+                body.className = 'chat-msg-body';
+                body.style.width = '100%';
+
+                var header = document.createElement('div');
+                header.className = 'chat-msg-header';
+
+                var nameEl = document.createElement('span');
+                nameEl.className = 'chat-msg-name';
+                nameEl.style.color = 'var(--info)';
+                nameEl.textContent = msg.name || 'Admin';
+                header.appendChild(nameEl);
+
+                var badge = document.createElement('span');
+                badge.className = 'chat-msg-announce-badge';
+                badge.innerHTML = '<svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> Announcement';
+                header.appendChild(badge);
+
+                var timeEl = document.createElement('span');
+                timeEl.className = 'chat-msg-time';
+                timeEl.textContent = formatTime(msg.timestamp);
+                header.appendChild(timeEl);
+
+                body.appendChild(header);
+
+                var textEl = document.createElement('div');
+                textEl.className = 'chat-msg-text';
+                textEl.textContent = parsed.content;
+                body.appendChild(textEl);
+
+                wrapper.appendChild(body);
+
+                // Update announcement banner for receiving users
+                if (msg.userId !== myUserId) {
+                    currentAnnouncement = { text: parsed.content, timestamp: msg.timestamp };
+                    showAnnounceBanner(parsed.content);
+                    saveAdminData();
+                }
+
+                return wrapper;
+            }
+
+            if (parsed.action === 'warn') {
+                wrapper.className = 'chat-msg chat-msg-warning';
+
+                var body = document.createElement('div');
+                body.className = 'chat-msg-body';
+                body.style.width = '100%';
+
+                var header = document.createElement('div');
+                header.className = 'chat-msg-header';
+
+                var nameEl = document.createElement('span');
+                nameEl.className = 'chat-msg-name';
+                nameEl.style.color = 'var(--warning)';
+                nameEl.textContent = msg.name || 'Admin';
+                header.appendChild(nameEl);
+
+                var badge = document.createElement('span');
+                badge.className = 'chat-msg-warning-badge';
+                badge.innerHTML = '<svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg> Warning';
+                header.appendChild(badge);
+
+                var timeEl = document.createElement('span');
+                timeEl.className = 'chat-msg-time';
+                timeEl.textContent = formatTime(msg.timestamp);
+                header.appendChild(timeEl);
+
+                body.appendChild(header);
+
+                var textEl = document.createElement('div');
+                textEl.className = 'chat-msg-text';
+                textEl.textContent = 'Warning to ' + parsed.targetUser + ': ' + parsed.reason;
+                body.appendChild(textEl);
+
+                wrapper.appendChild(body);
+                return wrapper;
+            }
+
+            if (parsed.action === 'pin') {
+                wrapper.className = 'chat-msg chat-msg-mod-system';
+                var textEl = document.createElement('div');
+                textEl.className = 'chat-msg-text';
+                textEl.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2" style="vertical-align:middle;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> <strong>' + escapeHtml(msg.name) + '</strong> pinned a message by <strong>' + escapeHtml(parsed.targetUser) + '</strong>';
+                wrapper.appendChild(textEl);
+
+                // Update pin for receiving users
+                if (msg.userId !== myUserId) {
+                    pinnedMessage = { name: parsed.targetUser, text: parsed.content, timestamp: msg.timestamp };
+                    showPinnedBanner(parsed.targetUser, parsed.content);
+                    saveAdminData();
+                }
+
+                return wrapper;
+            }
+
+            if (parsed.action === 'unpin') {
+                wrapper.className = 'chat-msg chat-msg-mod-system';
+                var textEl = document.createElement('div');
+                textEl.className = 'chat-msg-text';
+                textEl.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" style="vertical-align:middle;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> <strong>' + escapeHtml(msg.name) + '</strong> unpinned the message';
+                wrapper.appendChild(textEl);
+
+                if (msg.userId !== myUserId) {
+                    pinnedMessage = null;
+                    hidePinnedBanner();
+                    saveAdminData();
+                }
+
+                return wrapper;
+            }
+
+            if (parsed.action === 'hide') {
+                wrapper.className = 'chat-msg chat-msg-mod-system';
+                var textEl = document.createElement('div');
+                textEl.className = 'chat-msg-text';
+                textEl.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" style="vertical-align:middle;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><line x1="1" y1="1" x2="23" y2="23"/></svg> <strong>' + escapeHtml(msg.name) + '</strong> hid a message by <strong>' + escapeHtml(parsed.targetUser) + '</strong>';
+                wrapper.appendChild(textEl);
+                return wrapper;
+            }
+
+            if (parsed.action === 'delete') {
+                wrapper.className = 'chat-msg chat-msg-mod-system';
+                var textEl = document.createElement('div');
+                textEl.className = 'chat-msg-text';
+                textEl.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" style="vertical-align:middle;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> <strong>' + escapeHtml(msg.name) + '</strong> deleted a message by <strong>' + escapeHtml(parsed.targetUser) + '</strong>';
+                wrapper.appendChild(textEl);
+                return wrapper;
+            }
+
+            if (parsed.action === 'clearall') {
+                wrapper.className = 'chat-msg chat-msg-mod-system';
+                var textEl = document.createElement('div');
+                textEl.className = 'chat-msg-text';
+                textEl.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" style="vertical-align:middle;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg> <strong>' + escapeHtml(msg.name) + '</strong> cleared all messages';
+                wrapper.appendChild(textEl);
+
+                if (msg.userId !== myUserId) {
+                    chatMessages = [];
+                    hiddenMessages = {};
+                    pinnedMessage = null;
+                    currentAnnouncement = null;
+                    hidePinnedBanner();
+                    dismissAnnounceBanner();
+                    saveAdminData();
+                }
+
+                return wrapper;
+            }
+
+            return null;
+        }
+
+        function appendMessage(msg) {
+            var container = document.getElementById('chat-messages');
+            var empty = document.getElementById('chat-empty');
+
+            if (empty && empty.style.display !== 'none') {
+                empty.style.display = 'none';
+                container.innerHTML = '';
+            }
+
+            var el = createMessageElement(msg, chatMessages.length - 1);
+            if (el) container.appendChild(el);
+
+            var isNearBottom = (container.scrollHeight - container.scrollTop - container.clientHeight) < 100;
+            if (isNearBottom) {
+                container.scrollTop = container.scrollHeight;
+            }
+
+            updateAdminStats();
+        }
+
+        // ---- Update online count ----
+        function updateOnlineCount(count) {
+            var els = document.querySelectorAll('[data-obsidian-online]');
+            for (var i = 0; i < els.length; i++) {
+                els[i].textContent = count;
+            }
+        }
+
+        // ---- WebSocket Connection ----
+        function connectWebSocket() {
+            if (chatSocket && (chatSocket.readyState === WebSocket.CONNECTING || chatSocket.readyState === WebSocket.OPEN)) {
+                return;
+            }
+
+            try {
+                chatSocket = new WebSocket(CHAT_WS);
+            } catch(e) {
+                console.warn('[Obsidian Chat] WebSocket creation failed:', e);
+                scheduleReconnect();
+                return;
+            }
+
+            chatSocket.onopen = function() {
+                console.log('[Obsidian Chat] Connected');
+                if (pingInterval) clearInterval(pingInterval);
+                pingInterval = setInterval(function() {
+                    if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+                        chatSocket.send(JSON.stringify({ type: 'ping' }));
+                    }
+                }, 25000);
+            };
+
+            chatSocket.onmessage = function(event) {
+                try {
+                    var data = JSON.parse(event.data);
+                } catch(e) { return; }
+
+                if (data.type === 'welcome') {
+                    chatMessages = [];
+                    if (data.history && data.history.length > 0) {
+                        data.history.forEach(function(m) {
+                            chatMessages.push({
+                                type: m.type || 'chat',
+                                userId: m.userId,
+                                name: m.name,
+                                text: m.text,
+                                timestamp: m.timestamp
+                            });
+                        });
+                    }
+                    renderMessages();
+                    if (data.online !== undefined) updateOnlineCount(data.online);
+                }
+                else if (data.type === 'chat_message') {
+                    if (data.userId === myUserId) return;
+                    var msg = {
+                        type: 'chat',
+                        userId: data.userId,
+                        name: data.name || 'Anonymous',
+                        text: data.text,
+                        timestamp: data.timestamp || Date.now()
+                    };
+                    chatMessages.push(msg);
+                    if (chatMessages.length > MAX_MESSAGES) {
+                        chatMessages = chatMessages.slice(-MAX_MESSAGES);
+                    }
+                    appendMessage(msg);
+                }
+                else if (data.type === 'chat_cleared') {
+                    chatMessages = [];
+                    hiddenMessages = {};
+                    pinnedMessage = null;
+                    hidePinnedBanner();
+                    renderMessages();
+                }
+                else if (data.type === 'online_count') {
+                    if (data.online !== undefined) updateOnlineCount(data.online);
+                }
+            };
+
+            chatSocket.onclose = function() {
+                console.log('[Obsidian Chat] Disconnected');
+                if (pingInterval) clearInterval(pingInterval);
+                scheduleReconnect();
+            };
+
+            chatSocket.onerror = function() {
+                console.warn('[Obsidian Chat] WebSocket error');
+            };
+        }
+
+        function scheduleReconnect() {
+            if (reconnectTimer) clearTimeout(reconnectTimer);
+            reconnectTimer = setTimeout(function() {
+                connectWebSocket();
+            }, 3000);
+        }
+
+        // ---- Sending Messages ----
+        function sendChatMessage() {
+            var input = document.getElementById('chat-input');
+            var text = input.value.trim();
+            if (!text) return;
+
+            if (!myDisplayName) {
+                openChatNameModal();
+                if (typeof Obsidian !== 'undefined' && Obsidian.showToast) {
+                    Obsidian.showToast('Please set a display name first', 'warning');
+                }
+                return;
+            }
+
+            var msg = {
+                type: 'chat',
+                userId: myUserId,
+                name: myDisplayName,
+                text: text,
+                timestamp: Date.now()
+            };
+
+            chatMessages.push(msg);
+            if (chatMessages.length > MAX_MESSAGES) {
+                chatMessages = chatMessages.slice(-MAX_MESSAGES);
+            }
+            appendMessage(msg);
+
+            if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+                chatSocket.send(JSON.stringify({
+                    type: 'chat_message',
+                    userId: myUserId,
+                    name: myDisplayName,
+                    text: text,
+                    timestamp: msg.timestamp
+                }));
+            } else {
+                fetch(CHAT_API + '/api/messages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': '1' },
+                    body: JSON.stringify({
+                        userId: myUserId,
+                        name: myDisplayName,
+                        text: text,
+                        timestamp: msg.timestamp
+                    })
+                }).catch(function(e) {
+                    console.warn('[Obsidian Chat] REST fallback failed:', e);
+                });
+            }
+
+            input.value = '';
+            input.focus();
+        }
+
+        // ---- Input Handlers ----
+        function setupInputHandlers() {
+            var input = document.getElementById('chat-input');
+            var nameInput = document.getElementById('chat-name-input');
+
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendChatMessage();
+                }
+            });
+
+            nameInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    saveChatName();
+                }
+                if (e.key === 'Escape') {
+                    closeChatNameModal();
+                }
+            });
+
+            // Admin modal keyboard handlers
+            var announceText = document.getElementById('admin-announce-text');
+            if (announceText) {
+                announceText.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') closeAdminModal('announce');
+                });
+            }
+
+            var warnReason = document.getElementById('admin-warn-reason');
+            var warnUser = document.getElementById('admin-warn-user');
+            if (warnReason) {
+                warnReason.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') closeAdminModal('warn');
+                });
+            }
+            if (warnUser) {
+                warnUser.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') closeAdminModal('warn');
+                });
+            }
+        }
+
+        // ---- Utilities ----
+        function formatTime(ts) {
+            if (!ts) return '';
+            var d = new Date(ts);
+            var now = new Date();
+            var hours = d.getHours();
+            var mins = d.getMinutes().toString().padStart(2, '0');
+            var ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12 || 12;
+
+            if (d.toDateString() === now.toDateString()) {
+                return hours + ':' + mins + ' ' + ampm;
+            }
+            var month = (d.getMonth() + 1);
+            var day = d.getDate();
+            return month + '/' + day + ' ' + hours + ':' + mins + ' ' + ampm;
+        }
+
+        function hashCode(str) {
+            var hash = 0;
+            for (var i = 0; i < str.length; i++) {
+                var char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return Math.abs(hash);
+        }
+
+        function escapeHtml(text) {
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ---- Start ----
+        window.addEventListener('load', function() {
+            initChat();
+        });
+    </script>
+    <script src='https://cdn.jotfor.ms/agent/embedjs/019cf974cd4b78f1aa23f266e0c94f2017ad/embed.js'></script>
+</body>
+</html>
