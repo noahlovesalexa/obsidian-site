@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Obsidian - Media</title>
+    <link rel="icon" type="image/png" href="obsidian.png">
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <script src="theme-init.js"></script>
+    <script>
+    (function() {
+        // Auth guard + admin restriction for media page
+        var referrer = document.referrer;
+        var hasAuth = sessionStorage.getItem('obsidian_auth');
+        if (!hasAuth && !referrer.includes('index.html') && !referrer.includes(window.location.origin)) {
+            window.location.href = 'index.html';
+            return;
+        }
+        sessionStorage.setItem('obsidian_auth', 'true');
+
+        // Redirect non-admin users if media page is disabled
+        try {
+            var adminS = JSON.parse(localStorage.getItem('obsidian_admin_settings') || '{}');
+            if (adminS.disableMediaTab && !sessionStorage.getItem('obsidian_admin')) {
+                window.location.href = 'main.html';
+                return;
+            }
+        } catch(e) {}
+    })();
+    </script>
+
+    <div class="page-wrapper">
+        <header class="header animate-fade-in">
+            <div class="browser-bar">
+                <div class="left-section">
+                    <img src="obsidian.png" alt="Obsidian Logo" class="logo">
+                    <a href="#" class="app-name" onclick="event.preventDefault(); sessionStorage.setItem('obsidian_show_welcome','true'); window.location.href='main.html';"><h1>Obsidian</h1></a>
+                </div>
+                <nav class="tab-navigation">
+                    <button class="tab-btn" data-tab="games" onclick="window.location.href='main.html'">Games</button>
+                    <button class="tab-btn active" data-tab="media">Media</button>
+                    <button class="tab-btn" data-tab="chat" onclick="window.location.href='chat.html'">Chat</button>
+                    <button class="tab-btn" data-tab="ai" onclick="window.location.href='ai.html'">AI</button>
+                    <button class="tab-btn" data-tab="proxy" onclick="window.location.href='proxy.html'">Proxy</button>
+                    <button class="tab-btn" data-tab="settings" onclick="window.location.href='settings.html'">Settings</button>
+                    <button class="tab-btn" data-tab="credits" onclick="window.location.href='credits.html'">Credits</button>
+                </nav>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="media-tab-content animate-slide-up" style="padding: 0 1rem;">
+                <h2 class="settings-title" style="margin-bottom:1.25rem; display:flex; align-items:center; gap:0.5rem;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+                    Media Library
+                </h2>
+
+                <!-- Upload Area -->
+                <div id="media-upload-area" class="media-upload-area" onclick="document.getElementById('media-file-input').click()">
+                    <div class="media-upload-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--primary); opacity:0.8;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    </div>
+                    <div class="media-upload-text">Click or drag files to upload</div>
+                    <div class="media-upload-hint">Supports images (jpg, png, gif, webp) and videos (mp4, webm, ogg)</div>
+                    <input type="file" id="media-file-input" accept="image/*,video/*" multiple style="display:none;" onchange="handleMediaUpload(event)">
+                </div>
+
+                <!-- Toolbar -->
+                <div class="media-toolbar">
+                    <div class="media-toolbar-left">
+                        <span id="media-count" class="media-count">0 items</span>
+                        <button class="media-filter-btn active" data-mfilter="all" onclick="filterMedia('all', this)">All</button>
+                        <button class="media-filter-btn" data-mfilter="image" onclick="filterMedia('image', this)">Images</button>
+                        <button class="media-filter-btn" data-mfilter="video" onclick="filterMedia('video', this)">Videos</button>
+                    </div>
+                    <button class="btn btn-danger btn-sm" onclick="clearAllMedia()" style="font-size:0.75rem;">Clear All</button>
+                </div>
+
+                <!-- Media Grid -->
+                <div id="media-grid" class="media-grid"></div>
+
+                <!-- Empty State -->
+                <div id="media-empty" class="media-empty">
+                    <div class="media-empty-icon">&#127910;</div>
+                    <div class="media-empty-text">No media yet</div>
+                    <div class="media-empty-hint">Upload images or videos to build your library</div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Media Player Overlay -->
+        <div id="media-player-overlay" class="media-player-overlay">
+            <div id="media-player-container" class="media-player-container">
+                <div class="media-player-header">
+                    <span id="media-player-title" class="media-player-title">Media</span>
+                    <div class="media-player-header-btns">
+                        <button class="media-player-header-btn" id="media-maximize-btn" title="Toggle Fullscreen" onclick="toggleMediaFullscreen()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                        </button>
+                        <button class="media-player-header-btn" id="media-close-btn" title="Close" onclick="closeMediaPlayer()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div id="media-player-content" class="media-player-content"></div>
+                <!-- Video Controls (shown only for videos) -->
+                <div id="media-controls-bar" class="media-controls-bar" style="display:none;">
+                    <button class="media-ctrl-btn" onclick="mediaSkip(-10)" title="Back 10s">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                    </button>
+                    <button class="media-ctrl-btn play-btn" id="media-play-btn" onclick="toggleMediaPlay()" title="Play/Pause">
+                        <svg id="media-play-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    </button>
+                    <button class="media-ctrl-btn" onclick="mediaSkip(10)" title="Forward 10s">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"/></svg>
+                    </button>
+                    <div class="media-progress-wrapper">
+                        <span id="media-current-time" class="media-time">0:00</span>
+                        <div id="media-progress-bar" class="media-progress-bar" onclick="seekMedia(event)">
+                            <div id="media-progress-fill" class="media-progress-fill" style="width:0%;"></div>
+                        </div>
+                        <span id="media-duration" class="media-time">0:00</span>
+                    </div>
+                    <div class="media-volume-wrapper">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                        <input type="range" class="media-volume-slider" id="media-volume" min="0" max="1" step="0.05" value="1" oninput="setMediaVolume(this.value)">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="watermark">
+            <p>made by anonymous</p>
+        </footer>
+    </div>
+
+    <script src="theme.js"></script>
+    <script>
+        // ============================================
+        // MEDIA LIBRARY & PLAYER
+        // ============================================
+        var mediaCurrentFilter = 'all';
+
+        // Default media from root directory (visible to all users)
+        var defaultMedia = [
+            { id: 'default_mie_jumpscare', name: 'mie_jumpscare.png', type: 'image', data: 'mie_jumpscare.png', size: 0, isDefault: true },
+            { id: 'default_mie3', name: 'mie3.png', type: 'image', data: 'mie3.png', size: 0, isDefault: true },
+            { id: 'default_photo_1', name: 'photo_placeholder_1.png', type: 'image', data: 'photo_placeholder_1.png', size: 0, isDefault: true },
+            { id: 'default_photo_2', name: 'photo_placeholder_2.png', type: 'image', data: 'photo_placeholder_2.png', size: 0, isDefault: true },
+            { id: 'default_photo_3', name: 'photo_placeholder_3.png', type: 'image', data: 'photo_placeholder_3.png', size: 0, isDefault: true },
+            { id: 'default_video_1', name: 'c++_video', type: 'video', data: 'video_placeholder_1.mp4', size: 0, isDefault: true },
+            { id: 'default_video_2', name: 'video_placeholder_2.mp4', type: 'video', data: 'video_placeholder_2.mp4', size: 0, isDefault: true },
+            { id: 'default_video_3', name: 'video_placeholder_3.mp4', type: 'video', data: 'video_placeholder_3.mp4', size: 0, isDefault: true }
+        ];
+
+        function handleMediaUpload(event) {
+            var files = event.target.files;
+            if (!files || !files.length) return;
+
+            var a = Obsidian.getAdminSettings();
+            if (a.disableMediaUploads && !sessionStorage.getItem('obsidian_admin')) {
+                Obsidian.showToast('Media uploads are disabled by admin', 'error');
+                event.target.value = '';
+                return;
+            }
+            var count = 0;
+            Array.from(files).forEach(function(file) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var type = file.type.startsWith('video') ? 'video' : 'image';
+                    Obsidian.Media.add({
+                        name: file.name,
+                        type: type,
+                        mimeType: file.type,
+                        data: e.target.result,
+                        size: file.size
+                    });
+                    count++;
+                    if (count === files.length) {
+                        renderMediaLibrary();
+                        Obsidian.showToast(count + ' file(s) added to media library', 'success');
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+            event.target.value = '';
+        }
+
+        // Drag and drop
+        (function() {
+            var area = document.getElementById('media-upload-area');
+            if (!area) return;
+            ['dragenter','dragover'].forEach(function(ev) {
+                area.addEventListener(ev, function(e) { e.preventDefault(); area.classList.add('drag-over'); });
+            });
+            ['dragleave','drop'].forEach(function(ev) {
+                area.addEventListener(ev, function(e) { e.preventDefault(); area.classList.remove('drag-over'); });
+            });
+            area.addEventListener('drop', function(e) {
+                var dt = e.dataTransfer;
+                if (dt && dt.files && dt.files.length) {
+                    handleMediaUpload({ target: { files: dt.files }, preventDefault: function(){} });
+                }
+            });
+        })();
+
+        function renderMediaLibrary() {
+            var items = defaultMedia.concat(Obsidian.Media.getAll());
+            if (mediaCurrentFilter !== 'all') {
+                items = items.filter(function(i) { return i.type === mediaCurrentFilter; });
+            }
+            var grid = document.getElementById('media-grid');
+            var empty = document.getElementById('media-empty');
+            var countEl = document.getElementById('media-count');
+            var allCount = defaultMedia.length + Obsidian.Media.getAll().length;
+            countEl.textContent = allCount + ' item' + (allCount !== 1 ? 's' : '');
+
+            if (items.length === 0) {
+                grid.innerHTML = '';
+                empty.style.display = '';
+                return;
+            }
+            empty.style.display = 'none';
+            grid.innerHTML = '';
+            items.forEach(function(item) {
+                var card = document.createElement('div');
+                card.className = 'media-card';
+                card.onclick = function() { openMediaPlayer(item); };
+
+                // Type badge
+                var badge = document.createElement('span');
+                badge.className = 'media-card-type-badge';
+                badge.textContent = item.type === 'video' ? 'VIDEO' : 'IMG';
+                card.appendChild(badge);
+
+                // Delete btn
+                var del = document.createElement('button');
+                del.className = 'media-card-delete';
+                del.innerHTML = '&times;';
+                del.title = 'Remove';
+                del.onclick = function(e) {
+                    e.stopPropagation();
+                    Obsidian.Media.remove(item.id);
+                    renderMediaLibrary();
+                    Obsidian.showToast('Media removed', 'info');
+                };
+                if (!item.isDefault) card.appendChild(del);
+
+                // Thumbnail
+                if (item.type === 'image') {
+                    var img = document.createElement('img');
+                    img.className = 'media-card-thumb';
+                    img.src = item.data;
+                    img.alt = item.name;
+                    img.onerror = function() {
+                        try { img.remove(); } catch(e) {}
+                        var ph = document.createElement('div');
+                        ph.className = 'media-card-video-thumb';
+                        ph.innerHTML = 'IMG';
+                        card.appendChild(ph);
+                    };
+                    card.appendChild(img);
+                } else {
+                    var vthumb = document.createElement('div');
+                    vthumb.className = 'media-card-video-thumb';
+                    vthumb.innerHTML = '&#9654;';
+                    card.appendChild(vthumb);
+                }
+
+                // Info
+                var info = document.createElement('div');
+                info.className = 'media-card-info';
+                var nameEl = document.createElement('div');
+                nameEl.className = 'media-card-name';
+                nameEl.textContent = item.name;
+                var meta = document.createElement('div');
+                meta.className = 'media-card-meta';
+                var sizeStr = item.size < 1024*1024 ? (item.size/1024).toFixed(1)+' KB' : (item.size/(1024*1024)).toFixed(1)+' MB';
+                meta.textContent = item.type + ' · ' + sizeStr;
+                info.appendChild(nameEl);
+                info.appendChild(meta);
+                card.appendChild(info);
+                grid.appendChild(card);
+            });
+        }
+
+        function filterMedia(type, btn) {
+            mediaCurrentFilter = type;
+            document.querySelectorAll('.media-filter-btn').forEach(function(b) { b.classList.toggle('active', b.getAttribute('data-mfilter') === type); });
+            renderMediaLibrary();
+        }
+
+        function clearAllMedia() {
+            Obsidian.showConfirmModal('Delete all media? This cannot be undone.', function() {
+                Obsidian.Media.clear();
+                renderMediaLibrary();
+                Obsidian.showToast('All media cleared', 'info');
+            });
+        }
+
+        // ---- Media Player ----
+        var mediaPlayerVideo = null;
+        var mediaProgressInterval = null;
+
+        function openMediaPlayer(item) {
+            var overlay = document.getElementById('media-player-overlay');
+            var content = document.getElementById('media-player-content');
+            var controls = document.getElementById('media-controls-bar');
+            var title = document.getElementById('media-player-title');
+            var container = document.getElementById('media-player-container');
+            container.classList.remove('fullscreen');
+            title.textContent = item.name;
+            content.innerHTML = '';
+            clearInterval(mediaProgressInterval);
+            mediaPlayerVideo = null;
+
+            if (item.type === 'image') {
+                var img = document.createElement('img');
+                img.src = item.data;
+                img.alt = item.name;
+                img.onerror = function() {
+                    content.innerHTML = '<div style="padding:1rem;text-align:center;color:var(--text-secondary);">Missing image: <strong>' + item.data + '</strong><br>Place it in the site root folder.</div>';
+                };
+                content.appendChild(img);
+                controls.style.display = 'none';
+            } else {
+                var vid = document.createElement('video');
+                vid.src = item.data;
+                vid.preload = 'metadata';
+                vid.style.width = '100%';
+                vid.style.maxHeight = '70vh';
+                content.appendChild(vid);
+                controls.style.display = 'flex';
+                mediaPlayerVideo = vid;
+
+                vid.addEventListener('error', function() {
+                    controls.style.display = 'none';
+                    mediaPlayerVideo = null;
+                    clearInterval(mediaProgressInterval);
+                    content.innerHTML = '<div style="padding:1rem;text-align:center;color:var(--text-secondary);">Missing video: <strong>' + item.data + '</strong><br>Place it in the site root folder.</div>';
+                    Obsidian.showToast('Video file not found: ' + item.data, 'error');
+                });
+
+                vid.addEventListener('loadedmetadata', function() {
+                    document.getElementById('media-duration').textContent = formatMediaTime(vid.duration);
+                });
+                vid.addEventListener('ended', function() {
+                    updatePlayIcon(false);
+                });
+                mediaProgressInterval = setInterval(updateMediaProgress, 250);
+            }
+
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMediaPlayer() {
+            var overlay = document.getElementById('media-player-overlay');
+            overlay.classList.remove('active');
+            document.body.style.overflow = 'auto';
+            if (mediaPlayerVideo) {
+                mediaPlayerVideo.pause();
+                mediaPlayerVideo = null;
+            }
+            clearInterval(mediaProgressInterval);
+        }
+
+        function toggleMediaPlay() {
+            if (!mediaPlayerVideo) return;
+            if (mediaPlayerVideo.paused) {
+                mediaPlayerVideo.play();
+                updatePlayIcon(true);
+            } else {
+                mediaPlayerVideo.pause();
+                updatePlayIcon(false);
+            }
+        }
+
+        function updatePlayIcon(playing) {
+            var icon = document.getElementById('media-play-icon');
+            if (playing) {
+                icon.innerHTML = '<rect x="6" y="4" width="4" height="16" fill="currentColor"/><rect x="14" y="4" width="4" height="16" fill="currentColor"/>';
+            } else {
+                icon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3" fill="currentColor"/>';
+            }
+        }
+
+        function mediaSkip(sec) {
+            if (!mediaPlayerVideo) return;
+            mediaPlayerVideo.currentTime = Math.max(0, Math.min(mediaPlayerVideo.duration || 0, mediaPlayerVideo.currentTime + sec));
+            updateMediaProgress();
+        }
+
+        function seekMedia(event) {
+            if (!mediaPlayerVideo) return;
+            var bar = document.getElementById('media-progress-bar');
+            var rect = bar.getBoundingClientRect();
+            var pct = (event.clientX - rect.left) / rect.width;
+            mediaPlayerVideo.currentTime = pct * (mediaPlayerVideo.duration || 0);
+            updateMediaProgress();
+        }
+
+        function setMediaVolume(val) {
+            if (!mediaPlayerVideo) return;
+            mediaPlayerVideo.volume = parseFloat(val);
+        }
+
+        function updateMediaProgress() {
+            if (!mediaPlayerVideo) return;
+            var ct = mediaPlayerVideo.currentTime;
+            var dur = mediaPlayerVideo.duration || 0;
+            document.getElementById('media-current-time').textContent = formatMediaTime(ct);
+            document.getElementById('media-duration').textContent = formatMediaTime(dur);
+            var pct = dur > 0 ? (ct / dur) * 100 : 0;
+            document.getElementById('media-progress-fill').style.width = pct + '%';
+        }
+
+        function formatMediaTime(s) {
+            if (!s || isNaN(s)) return '0:00';
+            var m = Math.floor(s / 60);
+            var sec = Math.floor(s % 60);
+            return m + ':' + (sec < 10 ? '0' : '') + sec;
+        }
+
+        function toggleMediaFullscreen() {
+            var container = document.getElementById('media-player-container');
+            container.classList.toggle('fullscreen');
+        }
+
+        // Close media player on Esc
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                var overlay = document.getElementById('media-player-overlay');
+                if (overlay && overlay.classList.contains('active')) {
+                    closeMediaPlayer();
+                }
+            }
+            // Space to toggle play when media player is open
+            if (e.key === ' ' && document.getElementById('media-player-overlay').classList.contains('active') && mediaPlayerVideo) {
+                e.preventDefault();
+                toggleMediaPlay();
+            }
+        });
+
+        // ---- Apply admin restrictions ----
+        function applyMediaRestrictions() {
+            var a = Obsidian.getAdminSettings();
+            var isAdmin = !!sessionStorage.getItem('obsidian_admin');
+
+            // Disable uploads
+            if (a.disableMediaUploads && !isAdmin) {
+                var area = document.getElementById('media-upload-area');
+                var input = document.getElementById('media-file-input');
+                if (input) input.disabled = true;
+                if (area) {
+                    area.classList.add('disabled');
+                    area.onclick = function(e) {
+                        if (e) e.stopPropagation();
+                        Obsidian.showToast('Media uploads are disabled by admin', 'error');
+                    };
+                    var t = area.querySelector('.media-upload-text');
+                    if (t) t.textContent = 'Uploads disabled by admin';
+                }
+            }
+        }
+
+        // ---- Apply site title ----
+        function applySiteTitle() {
+            var a = Obsidian.getAdminSettings();
+            if (a.siteTitle) {
+                var h1 = document.querySelector('.app-name h1');
+                if (h1) h1.textContent = a.siteTitle;
+            }
+        }
+
+        // ---- Init ----
+        window.addEventListener('load', function() {
+            renderMediaLibrary();
+            applyMediaRestrictions();
+            applySiteTitle();
+        });
+    </script>
+    <script src='https://cdn.jotfor.ms/agent/embedjs/019cf974cd4b78f1aa23f266e0c94f2017ad/embed.js'></script>
+</body>
+</html>
