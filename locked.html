@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Obsidian - Access</title>
+    <link rel="icon" type="image/png" href="obsidian.png">
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-base);
+            font-family: var(--font-sans);
+        }
+
+        /* Subtle radial glow */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse 60% 50% at 50% 40%, rgba(var(--primary-rgb), 0.07) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── Card ── */
+        .lock-card {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 380px;
+            margin: 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2.5rem 2rem 2rem;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.45);
+            animation: cardIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both;
+        }
+
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(24px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* ── Icon ── */
+        .lock-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            background: rgba(var(--primary-rgb), 0.12);
+            border: 1px solid rgba(var(--primary-rgb), 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+        }
+
+        /* ── Text ── */
+        .lock-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-align: center;
+            letter-spacing: -0.025em;
+            margin-bottom: 0.4rem;
+        }
+
+        .lock-subtitle {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            text-align: center;
+            line-height: 1.5;
+            margin-bottom: 1.75rem;
+        }
+
+        /* ── Input ── */
+        .lock-field {
+            position: relative;
+            margin-bottom: 0.75rem;
+        }
+
+        .lock-field svg {
+            position: absolute;
+            left: 0.9rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .lock-field input {
+            width: 100%;
+            padding: 0.7rem 1rem 0.7rem 2.6rem;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            font-family: var(--font-sans);
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        .lock-field input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.14);
+        }
+
+        .lock-field input::placeholder { color: var(--text-muted); }
+
+        /* ── Button ── */
+        .lock-btn {
+            width: 100%;
+            padding: 0.72rem 1rem;
+            border-radius: 10px;
+            border: none;
+            background: var(--primary);
+            color: #fff;
+            font-size: 0.875rem;
+            font-weight: 600;
+            font-family: var(--font-sans);
+            cursor: pointer;
+            transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+            box-shadow: 0 2px 12px rgba(var(--primary-rgb), 0.35);
+            margin-top: 0.25rem;
+        }
+
+        .lock-btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 18px rgba(var(--primary-rgb), 0.45);
+        }
+
+        .lock-btn:active { transform: translateY(0); }
+
+        .lock-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ── Error ── */
+        .lock-error {
+            display: none;
+            font-size: 0.78rem;
+            color: var(--danger, #ef4444);
+            margin-top: 0.6rem;
+            text-align: center;
+            padding: 0.5rem 0.75rem;
+            background: rgba(239,68,68,0.08);
+            border: 1px solid rgba(239,68,68,0.2);
+            border-radius: 8px;
+        }
+
+        /* ── Footer note ── */
+        .lock-note {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 1.25rem;
+            opacity: 0.7;
+        }
+
+        /* ── Shake ── */
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            20%      { transform: translateX(-8px); }
+            40%      { transform: translateX(8px); }
+            60%      { transform: translateX(-5px); }
+            80%      { transform: translateX(5px); }
+        }
+
+        .shake { animation: shake 0.4s ease; }
+
+        /* ── Lockdown screen ── */
+        .lockdown-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            background: var(--bg-base);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lockdown-overlay.active { display: flex; }
+
+        .lockdown-card {
+            max-width: 360px;
+            width: 100%;
+            margin: 1rem;
+            background: var(--bg-card);
+            border: 1px solid rgba(239,68,68,0.25);
+            border-radius: 20px;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.45);
+        }
+
+        .lockdown-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            background: rgba(239,68,68,0.1);
+            border: 1px solid rgba(239,68,68,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+        }
+
+        .lockdown-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+        }
+
+        .lockdown-text {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .lockdown-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-top: 1.25rem;
+            padding: 0.35rem 0.85rem;
+            border-radius: 999px;
+            background: rgba(239,68,68,0.1);
+            border: 1px solid rgba(239,68,68,0.2);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #ef4444;
+        }
+
+        .lockdown-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #ef4444;
+            animation: pulse 1.5s ease infinite;
+        }
+
+        @keyframes pulse {
+            0%,100% { opacity: 1; transform: scale(1); }
+            50%      { opacity: 0.4; transform: scale(0.7); }
+        }
+    </style>
+</head>
+<body>
+    <script src="theme-init.js"></script>
+
+    <!-- Lockdown overlay -->
+    <div class="lockdown-overlay" id="lockdown-screen">
+        <div class="lockdown-card">
+            <div class="lockdown-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <h1 class="lockdown-title">Emergency Lockdown</h1>
+            <p class="lockdown-text">This site is currently under emergency lockdown.<br>Please wait for the administrator to lift it.</p>
+            <div class="lockdown-badge">
+                <span class="lockdown-dot"></span>
+                Lockdown Active
+            </div>
+        </div>
+    </div>
+
+    <!-- Login card -->
+    <div class="lock-card" id="lock-container">
+        <div class="lock-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+
+        <h2 class="lock-title">Access Required</h2>
+        <p class="lock-subtitle">Enter the access code to continue to Obsidian</p>
+
+        <div class="lock-field">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <input type="password" id="lock-code" placeholder="Access code" autocomplete="off">
+        </div>
+
+        <button class="lock-btn" id="lock-submit" onclick="attemptUnlock()">Unlock</button>
+
+        <div class="lock-error" id="lock-error"></div>
+
+        <p class="lock-note">Don't have a code? Contact the site administrator.</p>
+    </div>
+
+    <script src="theme.js"></script>
+    <script>
+        const codeInput  = document.getElementById('lock-code');
+        const errorEl    = document.getElementById('lock-error');
+        const card       = document.getElementById('lock-container');
+        const submitBtn  = document.getElementById('lock-submit');
+
+        const ACCESS_CODE = 'chesco';
+
+        function attemptUnlock() {
+            const code = codeInput.value.trim();
+            if (!code) { showError('Please enter an access code.'); return; }
+
+            if (code === ACCESS_CODE) {
+                errorEl.style.display = 'none';
+                submitBtn.textContent = 'Unlocking…';
+                submitBtn.disabled = true;
+                sessionStorage.setItem('obsidian_auth', 'true');
+                setTimeout(() => { window.location.href = 'main.html'; }, 600);
+            } else {
+                showError('Incorrect access code. Try again.');
+                codeInput.value = '';
+                codeInput.focus();
+                card.classList.remove('shake');
+                void card.offsetWidth; // reflow
+                card.classList.add('shake');
+                setTimeout(() => card.classList.remove('shake'), 400);
+            }
+        }
+
+        function showError(msg) {
+            errorEl.textContent = msg;
+            errorEl.style.display = 'block';
+        }
+
+        codeInput.addEventListener('keydown', e => { if (e.key === 'Enter') attemptUnlock(); });
+
+        window.addEventListener('load', () => {
+            codeInput.focus();
+            checkLockdown();
+        });
+
+        function checkLockdown() {
+            try {
+                const a = JSON.parse(localStorage.getItem('obsidian_admin_settings') || '{}');
+                if (a.emergencyLockdown) {
+                    document.getElementById('lockdown-screen').classList.add('active');
+                    card.style.display = 'none';
+                }
+            } catch(e) {}
+        }
+
+        window.addEventListener('storage', e => {
+            if (e.key === 'obsidian_admin_settings') checkLockdown();
+        });
+    </script>
+</body>
+</html>
