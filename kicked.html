@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Obsidian - Blocked</title>
+    <link rel="icon" type="image/png" href="obsidian.png">
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .kicked-particles {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .kicked-particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--danger, #ef4444);
+            border-radius: 50%;
+            opacity: 0.25;
+            animation: kParticleDrift 8s linear infinite;
+        }
+        @keyframes kParticleDrift {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            10% { opacity: 0.3; }
+            90% { opacity: 0.3; }
+            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+        }
+
+        .kicked-bg-glow {
+            position: fixed;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.08;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .kicked-bg-glow--1 {
+            top: -100px;
+            right: -100px;
+            background: var(--danger, #ef4444);
+            animation: kGlowFloat 8s ease-in-out infinite;
+        }
+        .kicked-bg-glow--2 {
+            bottom: -150px;
+            left: -100px;
+            background: var(--primary);
+            animation: kGlowFloat 10s ease-in-out infinite reverse;
+        }
+        @keyframes kGlowFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(30px, -20px) scale(1.1); }
+        }
+
+        .kicked-icon-ring {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 1.75rem;
+        }
+        .kicked-icon-ring__circle {
+            position: absolute;
+            inset: 0;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            animation: kSpinRing 8s linear infinite;
+        }
+        .kicked-icon-ring__danger {
+            position: absolute;
+            inset: 0;
+            border: 2px solid transparent;
+            border-top-color: var(--danger, #ef4444);
+            border-radius: 50%;
+            animation: kSpinRing 3s linear infinite;
+        }
+        .kicked-icon-ring__inner {
+            position: absolute;
+            inset: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-elevated);
+            border-radius: 50%;
+            border: 1px solid var(--border-color);
+        }
+        @keyframes kSpinRing {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .kicked-title {
+            font-size: 1.75rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--danger, #ef4444), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .kicked-pulse {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 1rem;
+            background: rgba(var(--primary-rgb), 0.1);
+            border: 1px solid rgba(var(--primary-rgb), 0.2);
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--danger, #ef4444);
+            margin-top: 1.5rem;
+            letter-spacing: 0.03em;
+        }
+        .kicked-pulse-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--danger, #ef4444);
+            border-radius: 50%;
+            animation: kPulseDot 1.5s ease-in-out infinite;
+        }
+        @keyframes kPulseDot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.7); }
+        }
+    </style>
+</head>
+<body>
+    <script src="theme-init.js"></script>
+
+    <!-- Floating particles -->
+    <div class="kicked-particles" id="particles"></div>
+
+    <!-- Background glows -->
+    <div class="kicked-bg-glow kicked-bg-glow--1"></div>
+    <div class="kicked-bg-glow kicked-bg-glow--2"></div>
+
+    <div class="center-page" style="position:relative; z-index:1;">
+        <div class="status-card animate-fade-in">
+            <div class="kicked-icon-ring">
+                <div class="kicked-icon-ring__circle"></div>
+                <div class="kicked-icon-ring__danger"></div>
+                <div class="kicked-icon-ring__inner">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--danger, #ef4444)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+                    </svg>
+                </div>
+            </div>
+
+            <h1 class="kicked-title">Access Blocked</h1>
+            <p class="status-desc">
+                You have been blocked by an administrator.
+            </p>
+            <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 0;">
+                Contact the site admin to regain access.
+            </p>
+
+            <div class="kicked-pulse">
+                <span class="kicked-pulse-dot"></span>
+                Blocked
+            </div>
+        </div>
+    </div>
+
+    <script src="theme.js"></script>
+    <script>
+        // Generate floating particles
+        var particleContainer = document.getElementById('particles');
+        for (var i = 0; i < 30; i++) {
+            var p = document.createElement('div');
+            p.className = 'kicked-particle';
+            p.style.left = Math.random() * 100 + '%';
+            p.style.animationDelay = Math.random() * 8 + 's';
+            p.style.animationDuration = (6 + Math.random() * 6) + 's';
+            p.style.width = p.style.height = (1 + Math.random() * 3) + 'px';
+            particleContainer.appendChild(p);
+        }
+
+        // Listen for unkick — if user gets unblocked, redirect back
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'obsidian_i_am_kicked') {
+                // If the flag was removed, user has been unkicked
+                if (!e.newValue || e.newValue !== 'true') {
+                    window.location.href = 'main.html';
+                }
+            }
+            if (e.key === 'obsidian_kick_signal' && e.newValue) {
+                try {
+                    var sig = JSON.parse(e.newValue);
+                    var myId = (function() {
+                        return localStorage.getItem('obsidian_user_id') || '';
+                    })();
+                    if (sig.action === 'unkick' && sig.userId === myId) {
+                        window.location.href = 'main.html';
+                    }
+                    if (sig.action === 'unkick_all') {
+                        window.location.href = 'main.html';
+                    }
+                } catch(err) {}
+            }
+        });
+
+        // Also poll to check if we've been unkicked (fallback)
+        setInterval(function() {
+            var kickedInLS = localStorage.getItem('obsidian_i_am_kicked') === 'true';
+            var kickedInCookie = (function() {
+                var match = document.cookie.match(new RegExp('(^| )obsidian_kicked=([^;]+)'));
+                return match ? decodeURIComponent(match[2]) : null;
+            })() === 'true';
+            if (!kickedInLS && !kickedInCookie) {
+                window.location.href = 'main.html';
+            }
+        }, 5000);
+    </script>
+</body>
+</html>
