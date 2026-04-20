@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Obsidian - Settings</title>
+    <link rel="icon" type="image/png" href="obsidian.png">
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* ── Settings page redesign ── */
+
+        .settings-container {
+            max-width: 680px !important;
+            margin: 0 auto !important;
+            padding: 1.75rem 1.5rem 3rem !important;
+        }
+
+        .settings-title {
+            font-size: 1.2rem !important;
+            font-weight: 700 !important;
+            letter-spacing: -0.025em !important;
+            color: var(--text-primary) !important;
+            margin-bottom: 1.5rem !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
+        }
+
+        /* Section cards */
+        .settings-section {
+            background: var(--bg-card) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 14px !important;
+            padding: 1.25rem 1.25rem 1rem !important;
+            margin-bottom: 0.75rem !important;
+        }
+
+        .settings-section h3 {
+            font-size: 0.72rem !important;
+            font-weight: 600 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.07em !important;
+            color: var(--text-muted) !important;
+            margin: 0 0 0.85rem !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.4rem !important;
+        }
+
+        .section-description {
+            font-size: 0.8rem !important;
+            color: var(--text-muted) !important;
+            margin: -0.4rem 0 0.85rem !important;
+            line-height: 1.5 !important;
+        }
+
+        /* Theme grid */
+        .theme-grid {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)) !important;
+            gap: 0.45rem !important;
+        }
+
+        .theme-grid-extra {
+            display: none !important;
+        }
+
+        .theme-grid-extra.visible {
+            display: grid !important;
+        }
+
+        .theme-option {
+            padding: 0.55rem 0.5rem !important;
+            border-radius: 10px !important;
+            border: 1px solid var(--border-color) !important;
+            background: var(--bg-elevated) !important;
+            font-size: 0.75rem !important;
+            font-weight: 500 !important;
+            color: var(--text-secondary) !important;
+            cursor: pointer !important;
+            transition: all 0.12s !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            gap: 0.4rem !important;
+        }
+
+        .theme-option:hover {
+            border-color: var(--primary) !important;
+            color: var(--text-primary) !important;
+        }
+
+        .theme-option.active {
+            border-color: var(--primary) !important;
+            background: rgba(var(--primary-rgb), 0.1) !important;
+            color: var(--primary) !important;
+        }
+
+        .theme-preview {
+            display: flex !important;
+            gap: 3px !important;
+        }
+
+        .theme-preview-dot {
+            width: 12px !important;
+            height: 12px !important;
+            border-radius: 50% !important;
+        }
+
+        /* Toggle rows */
+        .toggle-wrapper {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            padding: 0.6rem 0 !important;
+            border-bottom: 1px solid var(--border-color) !important;
+            gap: 1rem !important;
+        }
+
+        .toggle-wrapper:last-child { border-bottom: none !important; }
+
+        .toggle-label-text {
+            font-size: 0.83rem !important;
+            font-weight: 500 !important;
+            color: var(--text-primary) !important;
+            display: block !important;
+        }
+
+        .toggle-label-desc {
+            font-size: 0.72rem !important;
+            color: var(--text-muted) !important;
+            display: block !important;
+            margin-top: 0.1rem !important;
+        }
+
+        /* Form inputs */
+        .form-group {
+            margin-bottom: 0.75rem !important;
+        }
+
+        .form-group label {
+            font-size: 0.75rem !important;
+            font-weight: 500 !important;
+            color: var(--text-secondary) !important;
+            display: block !important;
+            margin-bottom: 0.35rem !important;
+        }
+
+        .form-group input,
+        .form-group select,
+        .settings-form input,
+        .settings-form select,
+        #density-select, #font-select,
+        #tab-title, #tab-icon,
+        #panic-key, #panic-url {
+            width: 100% !important;
+            padding: 0.55rem 0.85rem !important;
+            border-radius: 9px !important;
+            border: 1px solid var(--border-color) !important;
+            background: var(--bg-elevated) !important;
+            color: var(--text-primary) !important;
+            font-size: 0.83rem !important;
+            font-family: var(--font-sans) !important;
+            outline: none !important;
+            transition: border-color 0.15s, box-shadow 0.15s !important;
+            box-sizing: border-box !important;
+        }
+
+        .form-group input:focus,
+        .settings-form input:focus,
+        .settings-form select:focus,
+        #tab-title:focus, #tab-icon:focus,
+        #panic-key:focus, #panic-url:focus {
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.12) !important;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.5rem 1rem !important;
+            border-radius: 9px !important;
+            font-size: 0.8rem !important;
+            font-weight: 500 !important;
+            font-family: var(--font-sans) !important;
+            cursor: pointer !important;
+            border: 1px solid var(--border-color) !important;
+            transition: all 0.12s !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 0.4rem !important;
+        }
+
+        .btn-primary {
+            background: var(--primary) !important;
+            color: #fff !important;
+            border-color: var(--primary) !important;
+        }
+
+        .btn-primary:hover { background: var(--primary-hover) !important; }
+
+        .btn-secondary {
+            background: var(--bg-elevated) !important;
+            color: var(--text-secondary) !important;
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-card-hover) !important;
+            color: var(--text-primary) !important;
+        }
+
+        .btn-danger {
+            background: rgba(239,68,68,0.1) !important;
+            color: var(--danger) !important;
+            border-color: rgba(239,68,68,0.25) !important;
+        }
+
+        .btn-danger:hover { background: rgba(239,68,68,0.18) !important; }
+
+        .btn-group {
+            display: flex !important;
+            gap: 0.5rem !important;
+            flex-wrap: wrap !important;
+        }
+
+        /* Show all themes button */
+        .show-all-themes-btn {
+            margin-top: 0.6rem !important;
+            width: 100% !important;
+            justify-content: center !important;
+            font-size: 0.75rem !important;
+        }
+
+        /* Storage bar */
+        .storage-usage {
+            background: var(--bg-elevated) !important;
+            border-radius: 10px !important;
+            padding: 0.85rem !important;
+            border: 1px solid var(--border-color) !important;
+            margin-bottom: 0.85rem !important;
+        }
+
+        .storage-usage-header {
+            display: flex !important;
+            justify-content: space-between !important;
+            font-size: 0.78rem !important;
+            margin-bottom: 0.5rem !important;
+        }
+
+        .storage-bar {
+            height: 4px !important;
+            border-radius: 999px !important;
+            background: var(--border-color) !important;
+            overflow: hidden !important;
+        }
+
+        .storage-bar-fill {
+            height: 100% !important;
+            background: var(--primary) !important;
+            border-radius: 999px !important;
+            transition: width 0.4s ease !important;
+        }
+
+        /* Shortcuts */
+        .shortcuts-list {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 0.4rem !important;
+        }
+
+        .shortcut-item {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.75rem !important;
+            font-size: 0.8rem !important;
+            color: var(--text-secondary) !important;
+            padding: 0.35rem 0 !important;
+        }
+
+        kbd {
+            padding: 0.2rem 0.5rem !important;
+            border-radius: 6px !important;
+            background: var(--bg-elevated) !important;
+            border: 1px solid var(--border-color) !important;
+            font-size: 0.72rem !important;
+            font-family: var(--font-mono) !important;
+            color: var(--text-primary) !important;
+            min-width: 36px !important;
+            text-align: center !important;
+        }
+
+        /* Custom color panel */
+        #custom-theme-panel {
+            margin-top: 0.85rem !important;
+            padding: 0.85rem !important;
+            background: var(--bg-elevated) !important;
+            border-radius: 10px !important;
+            border: 1px solid var(--border-color) !important;
+        }
+
+        /* Danger zone section */
+        .settings-section[style*="border-color: rgba(239"] {
+            border-color: rgba(239,68,68,0.2) !important;
+        }
+    </style>
+</head>
+<body>
+    <script src="theme-init.js"></script>
+    <script>
+    (function() {
+        // Auth guard + admin restriction for settings page
+        var referrer = document.referrer;
+        var hasAuth = sessionStorage.getItem('obsidian_auth');
+        if (!hasAuth && !referrer.includes('index.html') && !referrer.includes(window.location.origin)) {
+            window.location.href = 'index.html';
+            return;
+        }
+        sessionStorage.setItem('obsidian_auth', 'true');
+
+        // Redirect non-admin users if settings page is disabled
+        try {
+            var adminS = JSON.parse(localStorage.getItem('obsidian_admin_settings') || '{}');
+            if (adminS.disableSettingsPage && !sessionStorage.getItem('obsidian_admin')) {
+                window.location.href = 'main.html';
+                return;
+            }
+        } catch(e) {}
+    })();
+    </script>
+
+    <div class="page-wrapper">
+        <header class="header animate-fade-in">
+            <div class="browser-bar">
+                <div class="left-section">
+                    <img src="obsidian.png" alt="Obsidian Logo" class="logo">
+                    <a href="#" class="app-name" onclick="event.preventDefault(); sessionStorage.setItem('obsidian_show_welcome','true'); window.location.href='main.html';"><h1>Obsidian</h1></a>
+                </div>
+                <nav class="tab-navigation">
+                    <button class="tab-btn" data-tab="games" onclick="window.location.href='main.html'">Games</button>
+                    <button class="tab-btn" data-tab="media" onclick="window.location.href='media.html'">Media</button>
+                    <button class="tab-btn" data-tab="chat" onclick="window.location.href='chat.html'">Chat</button>
+                    <button class="tab-btn" data-tab="ai" onclick="window.location.href='ai.html'">AI</button>
+                    <button class="tab-btn" data-tab="proxy" onclick="window.location.href='proxy.html'">Proxy</button>
+                    <button class="tab-btn active" data-tab="settings">Settings</button>
+                    <button class="tab-btn" data-tab="credits" onclick="window.location.href='credits.html'">Credits</button>
+                </nav>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="settings-container animate-slide-up">
+                <h2 class="settings-title">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    Settings
+                </h2>
+
+                <!-- THEME SECTION -->
+                <div class="settings-section animate-slide-up stagger-1">
+                    <h3>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                        Theme
+                    </h3>
+                    <p class="section-description">Choose a visual theme for the entire site</p>
+                    <div class="theme-grid" id="theme-grid">
+                        <!-- Default visible themes -->
+                        <button class="theme-option" data-theme="dark" onclick="selectTheme('dark')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#0a0a0f"></span>
+                                <span class="theme-preview-dot" style="background:#8b5cf6"></span>
+                                <span class="theme-preview-dot" style="background:#f0f0f5"></span>
+                            </div>
+                            Dark
+                        </button>
+                        <button class="theme-option" data-theme="light" onclick="selectTheme('light')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#f5f5fa"></span>
+                                <span class="theme-preview-dot" style="background:#7c3aed"></span>
+                                <span class="theme-preview-dot" style="background:#1a1a2e"></span>
+                            </div>
+                            Light
+                        </button>
+                        <button class="theme-option" data-theme="neon" onclick="selectTheme('neon')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#0a0a12"></span>
+                                <span class="theme-preview-dot" style="background:#00ff88"></span>
+                                <span class="theme-preview-dot" style="background:#ff00ff"></span>
+                            </div>
+                            Neon
+                        </button>
+                        <button class="theme-option" data-theme="amoled" onclick="selectTheme('amoled')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#000000"></span>
+                                <span class="theme-preview-dot" style="background:#8b5cf6"></span>
+                                <span class="theme-preview-dot" style="background:#f0f0f5"></span>
+                            </div>
+                            AMOLED
+                        </button>
+                        <button class="theme-option" data-theme="sunset" onclick="selectTheme('sunset')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#1a0a00"></span>
+                                <span class="theme-preview-dot" style="background:#f97316"></span>
+                                <span class="theme-preview-dot" style="background:#fbbf24"></span>
+                            </div>
+                            Sunset
+                        </button>
+                    </div>
+
+                    <!-- Collapsible extra themes -->
+                    <div class="theme-grid theme-grid-extra" id="theme-grid-extra" style="display:none;">
+                        <button class="theme-option" data-theme="ocean" onclick="selectTheme('ocean')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#021a22"></span>
+                                <span class="theme-preview-dot" style="background:#06b6d4"></span>
+                                <span class="theme-preview-dot" style="background:#67e8f9"></span>
+                            </div>
+                            Ocean
+                        </button>
+                        <button class="theme-option" data-theme="forest" onclick="selectTheme('forest')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#071208"></span>
+                                <span class="theme-preview-dot" style="background:#22c55e"></span>
+                                <span class="theme-preview-dot" style="background:#a3e635"></span>
+                            </div>
+                            Forest
+                        </button>
+                        <button class="theme-option" data-theme="rose" onclick="selectTheme('rose')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#1a0810"></span>
+                                <span class="theme-preview-dot" style="background:#f43f5e"></span>
+                                <span class="theme-preview-dot" style="background:#fda4af"></span>
+                            </div>
+                            Rose
+                        </button>
+                        <button class="theme-option" data-theme="midnight" onclick="selectTheme('midnight')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#050510"></span>
+                                <span class="theme-preview-dot" style="background:#6366f1"></span>
+                                <span class="theme-preview-dot" style="background:#a5b4fc"></span>
+                            </div>
+                            Midnight
+                        </button>
+                        <button class="theme-option" data-theme="lavender" onclick="selectTheme('lavender')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#f5f3ff"></span>
+                                <span class="theme-preview-dot" style="background:#a78bfa"></span>
+                                <span class="theme-preview-dot" style="background:#1e1b4b"></span>
+                            </div>
+                            Lavender
+                        </button>
+                        <button class="theme-option" data-theme="cyberpunk" onclick="selectTheme('cyberpunk')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#0d0221"></span>
+                                <span class="theme-preview-dot" style="background:#f0e030"></span>
+                                <span class="theme-preview-dot" style="background:#05d9e8"></span>
+                            </div>
+                            Cyberpunk
+                        </button>
+                        <button class="theme-option" data-theme="arctic" onclick="selectTheme('arctic')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#f0f9ff"></span>
+                                <span class="theme-preview-dot" style="background:#38bdf8"></span>
+                                <span class="theme-preview-dot" style="background:#0c4a6e"></span>
+                            </div>
+                            Arctic
+                        </button>
+                        <button class="theme-option" data-theme="mocha" onclick="selectTheme('mocha')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#1a1410"></span>
+                                <span class="theme-preview-dot" style="background:#c9a87c"></span>
+                                <span class="theme-preview-dot" style="background:#f5ede4"></span>
+                            </div>
+                            Mocha
+                        </button>
+                        <button class="theme-option" data-theme="cherry" onclick="selectTheme('cherry')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#fff1f2"></span>
+                                <span class="theme-preview-dot" style="background:#e11d48"></span>
+                                <span class="theme-preview-dot" style="background:#4c0519"></span>
+                            </div>
+                            Cherry
+                        </button>
+                        <button class="theme-option" data-theme="slate" onclick="selectTheme('slate')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#0f172a"></span>
+                                <span class="theme-preview-dot" style="background:#64748b"></span>
+                                <span class="theme-preview-dot" style="background:#f1f5f9"></span>
+                            </div>
+                            Slate
+                        </button>
+                        <!-- New themes -->
+                        <button class="theme-option" data-theme="dracula" onclick="selectTheme('dracula')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#282a36"></span>
+                                <span class="theme-preview-dot" style="background:#bd93f9"></span>
+                                <span class="theme-preview-dot" style="background:#f8f8f2"></span>
+                            </div>
+                            Dracula
+                        </button>
+                        <button class="theme-option" data-theme="nord" onclick="selectTheme('nord')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#2e3440"></span>
+                                <span class="theme-preview-dot" style="background:#88c0d0"></span>
+                                <span class="theme-preview-dot" style="background:#eceff4"></span>
+                            </div>
+                            Nord
+                        </button>
+                        <button class="theme-option" data-theme="solarized" onclick="selectTheme('solarized')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#002b36"></span>
+                                <span class="theme-preview-dot" style="background:#b58900"></span>
+                                <span class="theme-preview-dot" style="background:#fdf6e3"></span>
+                            </div>
+                            Solarized
+                        </button>
+                        <button class="theme-option" data-theme="strawberry" onclick="selectTheme('strawberry')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#2d0a1e"></span>
+                                <span class="theme-preview-dot" style="background:#ff6b9d"></span>
+                                <span class="theme-preview-dot" style="background:#ffc2d1"></span>
+                            </div>
+                            Strawberry
+                        </button>
+                        <button class="theme-option" data-theme="emerald" onclick="selectTheme('emerald')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#022c22"></span>
+                                <span class="theme-preview-dot" style="background:#10b981"></span>
+                                <span class="theme-preview-dot" style="background:#d1fae5"></span>
+                            </div>
+                            Emerald
+                        </button>
+                        <button class="theme-option" data-theme="bubblegum" onclick="selectTheme('bubblegum')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#fce4ec"></span>
+                                <span class="theme-preview-dot" style="background:#e91e90"></span>
+                                <span class="theme-preview-dot" style="background:#4a0028"></span>
+                            </div>
+                            Bubblegum
+                        </button>
+                        <button class="theme-option" data-theme="volcano" onclick="selectTheme('volcano')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#1a0500"></span>
+                                <span class="theme-preview-dot" style="background:#ff4500"></span>
+                                <span class="theme-preview-dot" style="background:#ffcc02"></span>
+                            </div>
+                            Volcano
+                        </button>
+                        <button class="theme-option" data-theme="grape" onclick="selectTheme('grape')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#1a0030"></span>
+                                <span class="theme-preview-dot" style="background:#9333ea"></span>
+                                <span class="theme-preview-dot" style="background:#e9d5ff"></span>
+                            </div>
+                            Grape
+                        </button>
+                        <button class="theme-option" data-theme="titanium" onclick="selectTheme('titanium')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#1a1e22"></span>
+                                <span class="theme-preview-dot" style="background:#78909c"></span>
+                                <span class="theme-preview-dot" style="background:#eceff1"></span>
+                            </div>
+                            Titanium
+                        </button>
+                        <button class="theme-option" data-theme="coral" onclick="selectTheme('coral')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#1c0e08"></span>
+                                <span class="theme-preview-dot" style="background:#ff7043"></span>
+                                <span class="theme-preview-dot" style="background:#ffab91"></span>
+                            </div>
+                            Coral
+                        </button>
+                        <button class="theme-option" data-theme="sapphire" onclick="selectTheme('sapphire')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#060c1f"></span>
+                                <span class="theme-preview-dot" style="background:#2962ff"></span>
+                                <span class="theme-preview-dot" style="background:#82b1ff"></span>
+                            </div>
+                            Sapphire
+                        </button>
+                        <button class="theme-option" data-theme="honey" onclick="selectTheme('honey')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#1a1408"></span>
+                                <span class="theme-preview-dot" style="background:#f9a825"></span>
+                                <span class="theme-preview-dot" style="background:#ffe082"></span>
+                            </div>
+                            Honey
+                        </button>
+                        <button class="theme-option" data-theme="mint" onclick="selectTheme('mint')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#e8f5e9"></span>
+                                <span class="theme-preview-dot" style="background:#00e676"></span>
+                                <span class="theme-preview-dot" style="background:#1b5e20"></span>
+                            </div>
+                            Mint
+                        </button>
+                        <button class="theme-option" data-theme="aurora" onclick="selectTheme('aurora')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#0a1520"></span>
+                                <span class="theme-preview-dot" style="background:#00bfa5"></span>
+                                <span class="theme-preview-dot" style="background:#64ffda"></span>
+                            </div>
+                            Aurora
+                        </button>
+                        <button class="theme-option" data-theme="sandstorm" onclick="selectTheme('sandstorm')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#f5f0e0"></span>
+                                <span class="theme-preview-dot" style="background:#d4a056"></span>
+                                <span class="theme-preview-dot" style="background:#3e3420"></span>
+                            </div>
+                            Sandstorm
+                        </button>
+                        <button class="theme-option" data-theme="phantom" onclick="selectTheme('phantom')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#0e0818"></span>
+                                <span class="theme-preview-dot" style="background:#b388ff"></span>
+                                <span class="theme-preview-dot" style="background:#ea80fc"></span>
+                            </div>
+                            Phantom
+                        </button>
+                        <button class="theme-option" data-theme="crimson" onclick="selectTheme('crimson')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#1a0606"></span>
+                                <span class="theme-preview-dot" style="background:#d50000"></span>
+                                <span class="theme-preview-dot" style="background:#ff8a80"></span>
+                            </div>
+                            Crimson
+                        </button>
+                        <button class="theme-option" data-theme="peach" onclick="selectTheme('peach')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#fff3e0"></span>
+                                <span class="theme-preview-dot" style="background:#ff8a80"></span>
+                                <span class="theme-preview-dot" style="background:#4e342e"></span>
+                            </div>
+                            Peach
+                        </button>
+                        <button class="theme-option" data-theme="ice" onclick="selectTheme('ice')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#e1f5fe"></span>
+                                <span class="theme-preview-dot" style="background:#4fc3f7"></span>
+                                <span class="theme-preview-dot" style="background:#01579b"></span>
+                            </div>
+                            Ice
+                        </button>
+                        <button class="theme-option" data-theme="cobalt" onclick="selectTheme('cobalt')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#0a1929"></span>
+                                <span class="theme-preview-dot" style="background:#1565c0"></span>
+                                <span class="theme-preview-dot" style="background:#42a5f5"></span>
+                            </div>
+                            Cobalt
+                        </button>
+                        <button class="theme-option" data-theme="rust" onclick="selectTheme('rust')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#1a0e08"></span>
+                                <span class="theme-preview-dot" style="background:#bf360c"></span>
+                                <span class="theme-preview-dot" style="background:#ff6e40"></span>
+                            </div>
+                            Rust
+                        </button>
+                        <button class="theme-option" data-theme="sakura" onclick="selectTheme('sakura')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#fce4ec"></span>
+                                <span class="theme-preview-dot" style="background:#f06292"></span>
+                                <span class="theme-preview-dot" style="background:#880e4f"></span>
+                            </div>
+                            Sakura
+                        </button>
+                        <button class="theme-option" data-theme="noir" onclick="selectTheme('noir')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#0a0a0a"></span>
+                                <span class="theme-preview-dot" style="background:#9e9e9e"></span>
+                                <span class="theme-preview-dot" style="background:#e0e0e0"></span>
+                            </div>
+                            Noir
+                        </button>
+                        <button class="theme-option" data-theme="matrix" onclick="selectTheme('matrix')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#000a00"></span>
+                                <span class="theme-preview-dot" style="background:#00e676"></span>
+                                <span class="theme-preview-dot" style="background:#b9f6ca"></span>
+                            </div>
+                            Matrix
+                        </button>
+                        <button class="theme-option" data-theme="dusk" onclick="selectTheme('dusk')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#1a1028"></span>
+                                <span class="theme-preview-dot" style="background:#7e57c2"></span>
+                                <span class="theme-preview-dot" style="background:#ff7043"></span>
+                            </div>
+                            Dusk
+                        </button>
+                        <button class="theme-option" data-theme="tundra" onclick="selectTheme('tundra')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#eceff1"></span>
+                                <span class="theme-preview-dot" style="background:#546e7a"></span>
+                                <span class="theme-preview-dot" style="background:#263238"></span>
+                            </div>
+                            Tundra
+                        </button>
+                        <button class="theme-option" data-theme="ember" onclick="selectTheme('ember')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#1a0e00"></span>
+                                <span class="theme-preview-dot" style="background:#ff6f00"></span>
+                                <span class="theme-preview-dot" style="background:#ffca28"></span>
+                            </div>
+                            Ember
+                        </button>
+                        <button class="theme-option" data-theme="aqua" onclick="selectTheme('aqua')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" style="background:#001214"></span>
+                                <span class="theme-preview-dot" style="background:#00bcd4"></span>
+                                <span class="theme-preview-dot" style="background:#80deea"></span>
+                            </div>
+                            Aqua
+                        </button>
+                        <button class="theme-option" data-theme="custom" onclick="selectTheme('custom')">
+                            <div class="theme-preview">
+                                <span class="theme-preview-dot" id="custom-dot-1" style="background:#8b5cf6"></span>
+                                <span class="theme-preview-dot" id="custom-dot-2" style="background:#c4b5fd"></span>
+                                <span class="theme-preview-dot" id="custom-dot-3" style="background:#f0f0f5"></span>
+                            </div>
+                            Custom
+                        </button>
+                    </div>
+                    <button class="btn btn-secondary btn-sm show-all-themes-btn" id="show-all-themes-btn" onclick="toggleAllThemes()" style="margin-top:0.75rem; width:100%;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                        <span id="show-all-themes-text">Show All Themes</span>
+                    </button>
+
+                    <!-- Custom Theme Colors -->
+                    <div id="custom-theme-panel" class="card" style="display:none; margin-top:1rem;">
+                        <div class="card-header">
+                            <span class="card-title">Custom Theme Colors</span>
+                        </div>
+                        <div class="color-inputs">
+                            <div class="color-input-group">
+                                <label for="color-primary">Primary Color</label>
+                                <input type="color" id="color-primary" value="#8b5cf6">
+                            </div>
+                            <div class="color-input-group">
+                                <label for="color-bg">Background Color</label>
+                                <input type="color" id="color-bg" value="#0a0a0f">
+                            </div>
+                            <div class="color-input-group">
+                                <label for="color-accent">Accent Color</label>
+                                <input type="color" id="color-accent" value="#c4b5fd">
+                            </div>
+                            <div class="color-input-group">
+                                <label for="color-text">Text Color</label>
+                                <input type="color" id="color-text" value="#f0f0f5">
+                            </div>
+                        </div>
+                        <div class="btn-group" style="margin-top:1rem;">
+                            <button class="btn btn-primary" onclick="applyCustomColors()">Apply Colors</button>
+                        </div>
+
+                        <!-- Live Preview -->
+                        <div class="live-preview" id="live-preview">
+                            <div class="live-preview-title">Live Preview</div>
+                            <div class="preview-card" id="preview-box">
+                                <span id="preview-text" style="font-weight:600;">Sample Text</span>
+                                <span id="preview-muted" style="font-size:0.85rem;">Secondary text example</span>
+                                <button id="preview-btn" style="padding:0.5rem 1rem; border:none; border-radius:8px; font-weight:600; cursor:pointer; width:fit-content;">Button Preview</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- APPEARANCE SECTION -->
+                <div class="settings-section animate-slide-up stagger-2">
+                    <h3>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                        Appearance
+                    </h3>
+                    <p class="section-description">Customize the look and feel of the interface</p>
+
+                    <div class="toggle-wrapper">
+                        <div class="toggle-label">
+                            <span class="toggle-label-text">Animations</span>
+                            <span class="toggle-label-desc">Enable smooth transitions and animations</span>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox" id="toggle-animations" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="form-group" style="margin-top:1rem;">
+                        <label for="density-select">UI Density</label>
+                        <select id="density-select" class="input">
+                            <option value="compact">Compact</option>
+                            <option value="normal" selected>Normal</option>
+                            <option value="spacious">Spacious</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin-top:1rem;">
+                        <label for="font-select">Font Family</label>
+                        <select id="font-select" class="input">
+                            <option value="inter">Inter (Default)</option>
+                            <option value="system">System UI</option>
+                            <option value="mono">Monospace</option>
+                            <option value="serif">Serif</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- TAB CLOAKING SECTION -->
+                <div class="settings-section animate-slide-up stagger-3">
+                    <h3>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        Tab Cloaking
+                    </h3>
+                    <p class="section-description">Disguise your browser tab to look like other websites</p>
+                    <div class="settings-form">
+                        <div class="form-group">
+                            <label for="tab-title">Tab Title</label>
+                            <input type="text" id="tab-title" class="input" placeholder="Enter custom tab title">
+                        </div>
+                        <div class="form-group">
+                            <label for="tab-icon">Tab Icon URL</label>
+                            <input type="text" id="tab-icon" class="input" placeholder="Enter favicon URL (e.g. https://...)">
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-primary" onclick="applyTabCloak()">Apply</button>
+                            <button class="btn btn-secondary" onclick="resetTabCloak()">Reset</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PANIC MODE SECTION -->
+                <div class="settings-section animate-slide-up stagger-4">
+                    <h3>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        Panic Mode
+                    </h3>
+                    <p class="section-description">Quickly redirect to a safe website when needed</p>
+                    <div class="settings-form">
+                        <div class="toggle-wrapper">
+                            <div class="toggle-label">
+                                <span class="toggle-label-text">Enable Panic Mode</span>
+                                <span class="toggle-label-desc">Press the panic key to instantly redirect</span>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="panic-enabled">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="panic-key">Panic Key</label>
+                                <select id="panic-key" class="input">
+                                    <option value="Escape">Escape</option>
+                                    <option value="F1">F1</option>
+                                    <option value="F2">F2</option>
+                                    <option value="F3">F3</option>
+                                    <option value="F4">F4</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="panic-url">Redirect URL</label>
+                                <input type="text" id="panic-url" class="input" placeholder="https://classroom.google.com" value="https://classroom.google.com">
+                            </div>
+                        </div>
+                        <div class="settings-description">
+                            Panic mode instantly redirects to your chosen URL when the panic key is pressed. Great for staying under the radar.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FEATURES SECTION -->
+                <div class="settings-section animate-slide-up stagger-5">
+                    <h3>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        Features
+                    </h3>
+                    <p class="section-description">Toggle site features on or off</p>
+
+                    <div class="toggle-wrapper">
+                        <div class="toggle-label">
+                            <span class="toggle-label-text">Welcome Screen</span>
+                            <span class="toggle-label-desc">Show splash screen on page load</span>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox" id="toggle-welcome" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="toggle-wrapper">
+                        <div class="toggle-label">
+                            <span class="toggle-label-text">Game Counter</span>
+                            <span class="toggle-label-desc">Show total game count in search area</span>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox" id="toggle-gamecounter" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="toggle-wrapper">
+                        <div class="toggle-label">
+                            <span class="toggle-label-text">Announcements</span>
+                            <span class="toggle-label-desc">Show system announcements from the developer</span>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox" id="toggle-announcements" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="toggle-wrapper">
+                        <div class="toggle-label">
+                            <span class="toggle-label-text">Anti-Close</span>
+                            <span class="toggle-label-desc">Show a confirmation prompt before closing or leaving the tab</span>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox" id="toggle-anticlose">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="toggle-wrapper">
+                        <div class="toggle-label">
+                            <span class="toggle-label-text">about:blank Cloaking</span>
+                            <span class="toggle-label-desc">Open the site inside an about:blank tab to hide it from browser history</span>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox" id="toggle-aboutblank">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- EXPORT/IMPORT SECTION -->
+                <div class="settings-section animate-slide-up stagger-6">
+                    <h3>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                        Data Management
+                    </h3>
+                    <p class="section-description">Backup, restore, or reset your configuration</p>
+
+                    <!-- Storage usage -->
+                    <div class="storage-usage" id="storage-usage">
+                        <div class="storage-usage-header">
+                            <span class="storage-usage-label">Storage Used</span>
+                            <span class="storage-usage-value" id="storage-value">Calculating...</span>
+                        </div>
+                        <div class="storage-bar">
+                            <div class="storage-bar-fill" id="storage-bar-fill" style="width:0%"></div>
+                        </div>
+                        <div class="storage-breakdown" id="storage-breakdown"></div>
+                    </div>
+
+                    <div class="btn-group" style="margin-top:1rem;">
+                        <button class="btn btn-primary" onclick="exportSettings()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Export
+                        </button>
+                        <button class="btn btn-secondary" onclick="importSettings()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            Import
+                        </button>
+                        <button class="btn btn-danger" onclick="resetAllSettings()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                            Reset Settings
+                        </button>
+                    </div>
+                </div>
+
+                <!-- DELETE ALL DATA SECTION -->
+                <div class="settings-section animate-slide-up stagger-6" style="border-color: rgba(239, 68, 68, 0.25);">
+                    <h3 style="color: var(--danger);">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                        Danger Zone
+                    </h3>
+                    <p class="section-description">Permanently delete all saved data including settings, game ratings, favorites, recently played history, and dismissed announcements. This cannot be undone.</p>
+                    <div class="btn-group">
+                        <button class="btn btn-danger" onclick="deleteAllData()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                            Delete All Saved Data
+                        </button>
+                    </div>
+                </div>
+
+                <!-- KEYBOARD SHORTCUTS -->
+                <div class="settings-section animate-slide-up stagger-6">
+                    <h3>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10"/></svg>
+                        Keyboard Shortcuts
+                    </h3>
+                    <p class="section-description">Quick reference for keyboard controls</p>
+                    <div class="shortcuts-list">
+                        <div class="shortcut-item">
+                            <kbd>/</kbd>
+                            <span>Focus search bar</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>Esc</kbd>
+                            <span>Close game / clear search</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <footer class="watermark">
+            <p>made by anonymous</p>
+        </footer>
+    </div>
+
+    <script src="theme.js"></script>
+    <script>
+        // ---- Load settings into UI ----
+        function loadSettingsUI() {
+            const s = Obsidian.Settings.getAll();
+
+            // Theme selector
+            document.querySelectorAll('.theme-option').forEach(el => {
+                el.classList.toggle('active', el.dataset.theme === s.theme);
+            });
+
+            // Show custom panel if custom theme
+            document.getElementById('custom-theme-panel').style.display = s.theme === 'custom' ? 'block' : 'none';
+
+            // Auto-expand extra themes if the active theme is in the collapsed section
+            var extraGrid = document.getElementById('theme-grid-extra');
+            if (extraGrid && extraGrid.querySelector('.theme-option.active')) {
+                extraGrid.classList.add('visible');
+                var text = document.getElementById('show-all-themes-text');
+                var svg = document.getElementById('show-all-themes-btn').querySelector('svg');
+                if (text) text.textContent = 'Show Less Themes';
+                if (svg) svg.style.transform = 'rotate(180deg)';
+            }
+
+            // Custom colors
+            document.getElementById('color-primary').value = s.custom.primary;
+            document.getElementById('color-bg').value = s.custom.background;
+            document.getElementById('color-accent').value = s.custom.accent;
+            document.getElementById('color-text').value = s.custom.text;
+            updatePreview();
+
+            // Appearance
+            document.getElementById('toggle-animations').checked = s.animations;
+            document.getElementById('density-select').value = s.density;
+            document.getElementById('font-select').value = s.font;
+
+            // Tab cloak
+            document.getElementById('tab-title').value = s.tabCloak.title || '';
+            document.getElementById('tab-icon').value = s.tabCloak.icon || '';
+
+            // Panic
+            document.getElementById('panic-enabled').checked = s.panic.enabled;
+            document.getElementById('panic-key').value = s.panic.key;
+            document.getElementById('panic-url').value = s.panic.url;
+
+            // Features
+            document.getElementById('toggle-welcome').checked = s.features.welcomeScreen;
+            document.getElementById('toggle-gamecounter').checked = s.features.gameCounter;
+            document.getElementById('toggle-announcements').checked = s.features.announcements;
+            document.getElementById('toggle-anticlose').checked = s.features.antiClose || false;
+            document.getElementById('toggle-aboutblank').checked = s.features.aboutBlankCloak || false;
+
+            // Custom preview dots
+            document.getElementById('custom-dot-1').style.background = s.custom.primary;
+            document.getElementById('custom-dot-2').style.background = s.custom.accent;
+            document.getElementById('custom-dot-3').style.background = s.custom.text;
+        }
+
+        // ---- Toggle All Themes ----
+        function toggleAllThemes() {
+            var extra = document.getElementById('theme-grid-extra');
+            var btn = document.getElementById('show-all-themes-btn');
+            var text = document.getElementById('show-all-themes-text');
+            var svg = btn.querySelector('svg');
+            if (!extra.classList.contains('visible')) {
+                extra.classList.add('visible');
+                text.textContent = 'Show Less Themes';
+                svg.style.transform = 'rotate(180deg)';
+            } else {
+                extra.classList.remove('visible');
+                text.textContent = 'Show All Themes';
+                svg.style.transform = '';
+            }
+        }
+
+        // ---- Theme Selection ----
+        function selectTheme(name) {
+            Obsidian.Theme.setTheme(name);
+            document.querySelectorAll('.theme-option').forEach(el => {
+                el.classList.toggle('active', el.dataset.theme === name);
+            });
+            document.getElementById('custom-theme-panel').style.display = name === 'custom' ? 'block' : 'none';
+            if (name === 'custom') applyCustomColors();
+            Obsidian.showToast('Theme changed to ' + name, 'success');
+        }
+
+        // ---- Custom Colors ----
+        function applyCustomColors() {
+            const colors = {
+                primary: document.getElementById('color-primary').value,
+                background: document.getElementById('color-bg').value,
+                accent: document.getElementById('color-accent').value,
+                text: document.getElementById('color-text').value
+            };
+            Obsidian.Settings.set('custom', colors);
+            Obsidian.Settings.set('theme', 'custom');
+            Obsidian.Theme.apply();
+            updatePreview();
+
+            // Update custom dots
+            document.getElementById('custom-dot-1').style.background = colors.primary;
+            document.getElementById('custom-dot-2').style.background = colors.accent;
+            document.getElementById('custom-dot-3').style.background = colors.text;
+
+            Obsidian.showToast('Custom colors applied', 'success');
+        }
+
+        function updatePreview() {
+            const primary = document.getElementById('color-primary').value;
+            const bg = document.getElementById('color-bg').value;
+            const accent = document.getElementById('color-accent').value;
+            const text = document.getElementById('color-text').value;
+
+            const box = document.getElementById('preview-box');
+            const txt = document.getElementById('preview-text');
+            const muted = document.getElementById('preview-muted');
+            const btn = document.getElementById('preview-btn');
+
+            box.style.background = bg;
+            txt.style.color = text;
+            muted.style.color = accent;
+            btn.style.background = primary;
+            btn.style.color = '#fff';
+        }
+
+        // Live preview on color change
+        ['color-primary', 'color-bg', 'color-accent', 'color-text'].forEach(id => {
+            document.getElementById(id).addEventListener('input', updatePreview);
+        });
+
+        // ---- Appearance Controls ----
+        document.getElementById('toggle-animations').addEventListener('change', function() {
+            Obsidian.Settings.set('animations', this.checked);
+            Obsidian.Theme.apply();
+            Obsidian.showToast('Animations ' + (this.checked ? 'enabled' : 'disabled'), 'info');
+        });
+
+        document.getElementById('density-select').addEventListener('change', function() {
+            Obsidian.Settings.set('density', this.value);
+            Obsidian.Theme.apply();
+            Obsidian.showToast('Density set to ' + this.value, 'info');
+        });
+
+        document.getElementById('font-select').addEventListener('change', function() {
+            Obsidian.Settings.set('font', this.value);
+            Obsidian.Theme.apply();
+            Obsidian.showToast('Font changed', 'info');
+        });
+
+        // ---- Tab Cloaking ----
+        function applyTabCloak() {
+            const title = document.getElementById('tab-title').value;
+            const icon = document.getElementById('tab-icon').value;
+
+            Obsidian.Settings.set('tabCloak.title', title);
+            Obsidian.Settings.set('tabCloak.icon', icon);
+
+            if (title) document.title = title;
+            if (icon) {
+                let link = document.querySelector('link[rel="icon"]');
+                if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
+                link.href = icon;
+            }
+
+            Obsidian.showToast('Tab cloak applied', 'success');
+        }
+
+        function resetTabCloak() {
+            document.title = 'Obsidian - Settings';
+            document.getElementById('tab-title').value = '';
+            document.getElementById('tab-icon').value = '';
+            Obsidian.Settings.set('tabCloak.title', '');
+            Obsidian.Settings.set('tabCloak.icon', '');
+            const link = document.querySelector('link[rel="icon"]');
+            if (link) link.remove();
+            Obsidian.showToast('Tab cloak reset', 'info');
+        }
+
+        // ---- Panic Mode ----
+        document.getElementById('panic-enabled').addEventListener('change', function() {
+            Obsidian.Settings.set('panic.enabled', this.checked);
+        });
+
+        document.getElementById('panic-key').addEventListener('change', function() {
+            Obsidian.Settings.set('panic.key', this.value);
+        });
+
+        document.getElementById('panic-url').addEventListener('change', function() {
+            Obsidian.Settings.set('panic.url', this.value);
+        });
+
+        // ---- Features ----
+        document.getElementById('toggle-welcome').addEventListener('change', function() {
+            Obsidian.Settings.set('features.welcomeScreen', this.checked);
+        });
+
+        document.getElementById('toggle-gamecounter').addEventListener('change', function() {
+            Obsidian.Settings.set('features.gameCounter', this.checked);
+        });
+
+        document.getElementById('toggle-announcements').addEventListener('change', function() {
+            Obsidian.Settings.set('features.announcements', this.checked);
+        });
+
+        document.getElementById('toggle-anticlose').addEventListener('change', function() {
+            Obsidian.Settings.set('features.antiClose', this.checked);
+            applyAntiClose();
+            // Force storage event for same-tab detection
+            window.dispatchEvent(new StorageEvent('storage', {
+                key: 'obsidian_settings',
+                newValue: localStorage.getItem('obsidian_settings')
+            }));
+            Obsidian.showToast(this.checked ? 'Anti-close enabled' : 'Anti-close disabled', 'success');
+        });
+
+        document.getElementById('toggle-aboutblank').addEventListener('change', function() {
+            const enabled = this.checked;
+            Obsidian.Settings.set('features.aboutBlankCloak', enabled);
+            if (enabled) {
+                // Open current site in about:blank cloak
+                const w = window.open('about:blank', '_blank');
+                if (w) {
+                    w.document.open();
+                    w.document.write(
+                        '<!DOCTYPE html><html><head><title>' + document.title + '</title>' +
+                        '<style>*{margin:0;padding:0;border:0}html,body,iframe{width:100%;height:100%;overflow:hidden}</style></head>' +
+                        '<body><iframe src="' + window.location.href + '" style="width:100%;height:100%;border:none;" allowfullscreen></iframe></body></html>'
+                    );
+                    w.document.close();
+                    Obsidian.showToast('Opened in about:blank cloak — switch to that tab', 'success');
+                } else {
+                    Obsidian.showToast('Popup blocked — allow popups for this site', 'error');
+                    this.checked = false;
+                    Obsidian.Settings.set('features.aboutBlankCloak', false);
+                }
+            }
+        });
+
+        // ---- Export / Import / Reset ----
+        function exportSettings() {
+            const json = Obsidian.Settings.export();
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'Obsidian-settings.json'; a.click();
+            URL.revokeObjectURL(url);
+            Obsidian.showToast('Settings exported', 'success');
+        }
+
+        function importSettings() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    if (Obsidian.Settings.import(ev.target.result)) {
+                        Obsidian.Theme.apply();
+                        loadSettingsUI();
+                        Obsidian.showToast('Settings imported successfully', 'success');
+                    } else {
+                        Obsidian.showToast('Import failed: invalid file', 'error');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        function resetAllSettings() {
+            Obsidian.showConfirmModal('Reset all settings to defaults? This cannot be undone.', function() {
+                Obsidian.Settings.reset();
+                Obsidian.Theme.clearCustom();
+                Obsidian.Theme.apply();
+                loadSettingsUI();
+                Obsidian.showToast('All settings reset to defaults', 'info');
+                updateStorageUsage();
+            });
+        }
+
+        // ---- Delete All Saved Data ----
+        function deleteAllData() {
+            Obsidian.showConfirmModal('DELETE ALL SAVED DATA? This will permanently erase all settings, game ratings, favorites, recently played history, announcements, and all other Obsidian data. This cannot be undone.', function() {
+                // Clear all Obsidian-related localStorage keys
+                const keysToRemove = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    keysToRemove.push(localStorage.key(i));
+                }
+                keysToRemove.forEach(key => localStorage.removeItem(key));
+
+                // Clear sessionStorage too
+                sessionStorage.clear();
+                // Re-set auth so user doesn't get kicked out
+                sessionStorage.setItem('obsidian_auth', 'true');
+
+                // Reset in-memory settings and re-apply defaults
+                Obsidian.Settings.reset();
+                Obsidian.Theme.clearCustom();
+                Obsidian.Theme.apply();
+                loadSettingsUI();
+                updateStorageUsage();
+                Obsidian.showToast('All saved data has been deleted', 'info');
+            });
+        }
+
+        // ---- Storage Usage ----
+        function updateStorageUsage() {
+            const storageMap = {
+                'obsidian_settings': 'Settings',
+                'obsidian_game_ratings': 'Game Ratings',
+                'obsidian_favorites': 'Favorites',
+                'obsidian_recent_games': 'Recent Games',
+                'dismissedAnnouncements': 'Announcements'
+            };
+
+            let totalBytes = 0;
+            let breakdownHTML = '';
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const val = localStorage.getItem(key);
+                totalBytes += (key.length + val.length) * 2; // UTF-16
+            }
+
+            const maxBytes = 5 * 1024 * 1024; // 5MB typical limit
+            const pct = Math.min(100, (totalBytes / maxBytes) * 100);
+
+            const valueEl = document.getElementById('storage-value');
+            const fillEl = document.getElementById('storage-bar-fill');
+            const breakdownEl = document.getElementById('storage-breakdown');
+
+            if (totalBytes < 1024) {
+                valueEl.textContent = totalBytes + ' B / 5 MB';
+            } else if (totalBytes < 1024 * 1024) {
+                valueEl.textContent = (totalBytes / 1024).toFixed(1) + ' KB / 5 MB';
+            } else {
+                valueEl.textContent = (totalBytes / (1024 * 1024)).toFixed(2) + ' MB / 5 MB';
+            }
+            fillEl.style.width = pct.toFixed(1) + '%';
+
+            // Breakdown
+            let items = [];
+            for (const [key, label] of Object.entries(storageMap)) {
+                const val = localStorage.getItem(key);
+                if (val) {
+                    const bytes = (key.length + val.length) * 2;
+                    items.push('<span class="storage-item">' + label + ': ' + (bytes < 1024 ? bytes + ' B' : (bytes/1024).toFixed(1) + ' KB') + '</span>');
+                }
+            }
+            breakdownEl.innerHTML = items.length ? items.join('') : '<span class="storage-item">No data stored</span>';
+        }
+
+        // ---- Anti-close (apply on this page too) ----
+        function _antiCloseHandler(e) {
+            e.preventDefault();
+            e.returnValue = '';
+            return '';
+        }
+        function applyAntiClose() {
+            const enabled = (Obsidian.Settings.getAll().features || {}).antiClose;
+            if (enabled) {
+                window.addEventListener('beforeunload', _antiCloseHandler);
+            } else {
+                window.removeEventListener('beforeunload', _antiCloseHandler);
+            }
+        }
+
+        // ---- Init ----
+        window.addEventListener('load', () => {
+            loadSettingsUI();
+            updateStorageUsage();
+            applyAntiClose();
+        });
+    </script>
+    <script src='https://cdn.jotfor.ms/agent/embedjs/019cf974cd4b78f1aa23f266e0c94f2017ad/embed.js'></script>
+</body>
+</html>
